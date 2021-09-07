@@ -1,4 +1,6 @@
-import os
+import os,helppage
+import subprocess
+
 
 def refresh():
     print("Remove repo")
@@ -6,7 +8,11 @@ def refresh():
     print("Reclone it")
     os.system("git clone https://github.com/tekq/elements-repo.git ~/.lmt-repo")
     os.system("chmod a+x ~/.lmt-repo/*")
-    print("Update Complete")
+    print("Checking for updates")
+    currentver = os.popen('cat ~/.lmt-repo/.current-ver').read()
+    ver = helppage.ver
+    print("Local Elements version: " + ver)
+    print("Newest Elements version: " + currentver)
 
 def update():
     # delete current elements files
