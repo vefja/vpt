@@ -59,7 +59,7 @@ if connect():
         install.install_pkg()
     elif args in ['--del', '-d', '--delete']:
         delete.delete_pkg()
-    elif args in ['--sr', '--search', 's']:
+    elif args in ['--sr', '--search', '-s']:
         search.search_pkg()
     elif args in ['--ref', '-R', '--refresh']:
         pkg = ""
