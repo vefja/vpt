@@ -34,8 +34,6 @@ def debugger():
     print("Helppage: " + help)
     print("Version: " + helppage.ver)
 
-
-
 if debugging == 0:
     debug="true"
     debugger()
@@ -76,4 +74,4 @@ if connect():
         debugger()
 
 else:
-    print("No internet. Using Elements with no internet might be dangerous to the well being of your system, try again later.")
+    print("No internet. Using Elements with no internet might be dangerous to the wellbeing of your system, try again later.")
