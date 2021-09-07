@@ -1,5 +1,4 @@
-import delete,sys,install,update,search
-import helppage
+import delete,sys,install,update,search,helppage,os
 
 full_cmd_arguments = sys.argv
 args1 = full_cmd_arguments[1:]
@@ -7,7 +6,7 @@ full_cmd_arguments = sys.argv
 args2 = full_cmd_arguments[2:]
 full_cmd_arguments = sys.argv
 
-
+debugging=os.system("ls | grep debug")
 
 debug="false"
 help="false"
@@ -73,3 +72,8 @@ if connect():
 
 else:
     print("No internet. Using Elements with no internet might be dangerous to the well being of your system, try again later.")
+
+
+if debugging == 0:
+    debug="true"
+    debugger()
