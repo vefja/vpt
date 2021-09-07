@@ -35,6 +35,11 @@ def debugger():
     print("Version: " + helppage.ver)
 
 
+
+if debugging == 0:
+    debug="true"
+    debugger()
+
 if connect():
     if args in ['--up', '-U', '--update', '--ref', '-R', '--refresh']:
         updating = "true"
@@ -72,8 +77,3 @@ if connect():
 
 else:
     print("No internet. Using Elements with no internet might be dangerous to the well being of your system, try again later.")
-
-
-if debugging == 0:
-    debug="true"
-    debugger()
