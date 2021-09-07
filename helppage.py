@@ -7,5 +7,5 @@ def helppage():
     print("--add/-a: " + "install packages")
     print("--del/-d: " + "remove packages")
     print("--ref/-r: " + "refresh the repository")
-    print("--up/-U: " + "debug menu")
+    print("--up/-U: " + "update")
     print("--sr/-s: " + "search a package")
