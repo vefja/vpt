@@ -21,6 +21,7 @@ def update():
     # replace them with the latest and greatest
     os.system("git clone https://github.com/NitrogenLinux/elements.git")
     os.system("mv -v elements /usr/share/")
+    print("Elements Update Complete!")
 
 def cfgregen():
     print("Regenerating Config...")
