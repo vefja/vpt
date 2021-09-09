@@ -1,5 +1,5 @@
-import os,helppage
-import subprocess
+import os
+import helppage
 
 
 def refresh():
@@ -14,6 +14,7 @@ def refresh():
     print("Local Elements version: " + ver)
     print("Newest Elements version: " + currentver)
 
+
 def update():
     # delete current elements files
     os.system("rm /usr/share/elements/main.py")
@@ -27,3 +28,8 @@ def update():
     os.system("curl https://github.com/NitrogenLinux/delete.py > /usr/share/elements/delete.py")
     os.system("curl https://github.com/NitrogenLinux/search.py > /usr/share/elements/search.py")
     os.system("curl https://github.com/NitrogenLinux/helppage.py > /usr/share/elements/helppage.py")
+
+
+def cfgregen():
+    print("Regenerating Config...")
+    os.system("curl https://github.com/NitrogenLinux/lmt.cfg > /usr/share/elements/lmt.cfg")

@@ -1,4 +1,5 @@
-ver="0.0.3"
+ver = "0.0.4"
+
 
 def helppage():
     print("Elements " + ver)
@@ -9,3 +10,5 @@ def helppage():
     print("--ref/-r: " + "refresh the repository")
     print("--up/-U: " + "update")
     print("--sr/-s: " + "search a package")
+    print("--cfg-regen: " + "regenerate CFLAGS and CXXFLAGS")
+    print("--help/-h: " + "show this menu")
