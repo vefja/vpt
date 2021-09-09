@@ -51,6 +51,7 @@ def debugger():
 if connect():
     if args in ['--up', '-U', '--update', '--ref', '-R', '--refresh', '--cfg-regen']:
         updating = "true"
+        update.update()
     elif args in ['--help', '-h', '?']:
         helper = "true"
         helppage.helppage()

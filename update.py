@@ -17,18 +17,10 @@ def refresh():
 
 def update():
     # delete current elements files
-    os.system("rm /usr/share/elements/main.py")
-    os.system("rm /usr/share/elements/install.py")
-    os.system("rm /usr/share/elements/delete.py")
-    os.system("rm /usr/share/elements/search.py")
-    os.system("rm /usr/share/elements/helppage.py")
+    os.system("rm -rvf /usr/share/elements")
     # replace them with the latest and greatest
-    os.system("curl https://github.com/NitrogenLinux/main.py > /usr/share/elements/main.py")
-    os.system("curl https://github.com/NitrogenLinux/install.py > /usr/share/elements/install.py")
-    os.system("curl https://github.com/NitrogenLinux/delete.py > /usr/share/elements/delete.py")
-    os.system("curl https://github.com/NitrogenLinux/search.py > /usr/share/elements/search.py")
-    os.system("curl https://github.com/NitrogenLinux/helppage.py > /usr/share/elements/helppage.py")
-
+    os.system("git clone https://github.com/NitrogenLinux/elements.git")
+    os.system("mv -v elements /usr/share/")
 
 def cfgregen():
     print("Regenerating Config...")
