@@ -15,8 +15,6 @@ full_cmd_arguments = sys.argv
 
 debugging = os.system("ls /usr/share/elements | grep debug")
 
-os.system("bash /usr/share/elements/lmt.cfg")
-
 debug = "false"
 helper = "false"
 invalid = "false"
