@@ -8,7 +8,7 @@ def install_pkg():
     print("Are you sure you want to install " + pkg + "?")
     x = str(input("Y/n "))
     if x in ['y']:
-        os.system("~/.lmt-repo/" + pkg + "-package")
+        os.system("~/.lmt-repo/" + pkg + "/build")
         print("----------------------------")
         print("Installed " + pkg + " successfully")
     elif x in ['n']:
