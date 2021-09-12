@@ -1,3 +1,2 @@
 #!/bin/bash
-
-python /usr/share/elements/main.py $1 $2 $3
+/usr/share/elements/lmt $1 $2 $3
