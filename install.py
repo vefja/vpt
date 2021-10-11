@@ -4,7 +4,7 @@ from colorama import Fore
 
 pkg = ""
 ver = 0
-pkgs = open("/usr/share/elements/pkgs", 'a')
+#pkgs = open("/usr/share/elements/pkgs", 'a')
 
 
 def pkgscheck():

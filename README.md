@@ -1,5 +1,6 @@
-# Elements Next
-This is where all the unstable updates come before they are final.
+# elements
+fast and simple package manager, coded in Python and Shell
+Designed to be easy to develop for.
 
 
-Only for testing purposes, Use Elements Next branch at your own risk!
+Mantainers for packages: @Skunxyy @Tekq @Feear

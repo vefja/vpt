@@ -6,24 +6,50 @@ import search
 import helppage
 import os
 import urllib.request
+import ntgcfg
 from colorama import Fore
 
-pkgs = open('/usr/share/elements/pkgs', 'r')
-packages = pkgs.read()
+# debug
+def debugger():
+    print("Debugger:")
+    print("Debug: " + debug)
+    print("Argument:" + args)
+    print("Pkg: " + install.pkg)
+    print("Valid: " + package_validity)
+    print("Updating: " + updating)
+    print("C Flags: " + str(os.system("echo $CFLAGS")))
+    print("C++ Flags: " + str(os.system("echo $CXXFLAGS")))
+    print("Helppage: " + helper)
+    print("Version: " + helppage.ver)
 
+full_cmd_arguments = sys.argv
+DebugArgs = full_cmd_arguments[3:]
+if not DebugArgs:
+    print("Post Enabled")
+    # P O S T
+    def post():
+        pkgs = open('/usr/share/elements/pkgs', 'r')
+        packages = pkgs.read()
+        print(Fore.GREEN + "Pkgs loaded")
+        debugging = os.system("ls /usr/share/elements | grep debug")
+        if debugging == 0:
+            print(Fore.RED + "Debugging Enabled" + Fore.WHITE)
+        else:
+            print(Fore.GREEN + "Debugging Disabled" + Fore.WHITE)
+    post()
+else:
+    debugger()
 
 full_cmd_arguments = sys.argv
 args1 = full_cmd_arguments[1:]
 full_cmd_arguments = sys.argv
 args2 = full_cmd_arguments[2:]
-full_cmd_arguments = sys.argv
 
 if not args1:
     print(Fore.RED + "Usage: 'lmt --option package'")
     helppage.helppage()
     sys.exit()
 
-debugging = os.system("ls /usr/share/elements | grep debug")
 
 debug = "false"
 helper = "false"
@@ -42,20 +68,6 @@ def connect():
         return False
 
 
-# debug
-def debugger():
-    print("Debugger:")
-    print("Debug: " + debug)
-    print("Argument:" + args)
-    print("Pkg: " + install.pkg)
-    print("Valid: " + package_validity)
-    print("Updating: " + updating)
-    print("C Flags: " + str(os.system("echo $CFLAGS")))
-    print("C++ Flags: " + str(os.system("echo $CXXFLAGS")))
-    print("Helppage: " + helper)
-    print("Version: " + helppage.ver)
-
-
 if connect():
     if args in ['--up', '-U', '--update']:
         updating = "true"
@@ -71,8 +83,9 @@ if connect():
         helppage.version()
     elif args in ['--list', '-l']:
         print("Packages: " + packages)
+    elif args in ['--configure', '--cfg']:
+        ntgcfg.tui_interface()
     else:
-        os.system("bash /usr/share/elements/cc.cfg")
         if debugging == 0:
             debug = "true"
             debugger()
