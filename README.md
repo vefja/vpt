@@ -1,6 +1,4 @@
-# elements
-fast and simple package manager, coded in Python and Shell
-Designed to be easy to develop for.
+# elements-next
+newest of the new. Bleeding edge but unstable.
 
-
-Mantainers for packages: @Skunxyy @Tekq @Feear
+Only for testing. Not for daily use.
