@@ -3,8 +3,8 @@ import os
 import sys
 from colorama import Fore
 
-#pkgs = open('/usr/share/elements/pkgs', 'r')
-#packages = pkgs.read()
+pkgs = open('/usr/share/elements/pkgs', 'r')
+packages = pkgs.read()
 
 
 def delete_pkg():

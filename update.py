@@ -36,7 +36,7 @@ def update():
 
 def cfgregen():
     # Warning just in case
-    print("Doing this will remove your old cc.cfg, are you sure?")
+    print("Doing this will remove your old cfg.py, and replace it with a fresh one, are you sure?")
 
     # Create a Y/N prompt
     def prompt():
@@ -45,8 +45,8 @@ def cfgregen():
         if x in ['y']:
             # If yes it will regenerate
             print("Regenerating Config...")
-            os.system("curl https://raw.githubusercontent.com/NitrogenLinux/elements/main/cc.cfg > "
-                      "/usr/share/elements/cc.cfg")
+            os.system("curl https://raw.githubusercontent.com/NitrogenLinux/elements/main/cfg.py > "
+                      "/usr/share/elements/cfg.py")
         elif x in ['n']:
             # If not it will exit
             sys.exit()

@@ -3,10 +3,12 @@ from colorama import Fore # Colorama for coloured text
 # Start Configuration Tool for Nitrogen Configuration
 def ntg_configuration():
     print("Currently Configuring: Nitrogen")
+    print("Not Functional Yet. Configure it manually in cfg.py.")
 
 # Start configuration tool for Elements Configuration
 def lmt_configuration():
     print("Currently Configuring: Elements")
+    print("Not Functional Yet. Configure it manually in cfg.py.")
 
 # Interface for choosing between LMT and NTG Config
 def tui_interface():

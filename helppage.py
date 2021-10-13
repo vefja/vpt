@@ -11,7 +11,7 @@ def helppage():
     print("--ref/-r: " + "refresh the repository")
     print("--up/-U: " + "update")
     print("--sr/-s: " + "search a package")
-    print("--cfg-regen: " + "regenerate CFLAGS and CXXFLAGS")
+    print("--cfg-regen: " + "regenerate cfg.py file")
     print("--list/-l: " + " list all installed packages")
     print("--configure/--cfg:" + " configure Elements & Nitrogen")
     print('--ver/-v: ' + 'show version')

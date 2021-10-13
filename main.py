@@ -9,75 +9,74 @@ import urllib.request
 import ntgcfg
 from colorama import Fore
 
-# debug
-def debugger():
-    print("Debugger:")
-    print("Debug: " + debug)
-    print("Argument:" + args)
-    print("Pkg: " + install.pkg)
-    print("Valid: " + package_validity)
-    print("Updating: " + updating)
-    print("C Flags: " + str(os.system("echo $CFLAGS")))
-    print("C++ Flags: " + str(os.system("echo $CXXFLAGS")))
-    print("Helppage: " + helper)
-    print("Version: " + helppage.ver)
 
+# Check for arguments that will disable POST
 full_cmd_arguments = sys.argv
 DebugArgs = full_cmd_arguments[3:]
 if not DebugArgs:
-    print("Post Enabled")
-    # P O S T
+    print(Fore.GREEN + "Post Enabled" + Fore.WHITE)
+    # P O S T, do all checks to be sure Elements can go ahead
     def post():
-        pkgs = open('/usr/share/elements/pkgs', 'r')
-        packages = pkgs.read()
-        print(Fore.GREEN + "Pkgs loaded")
-        debugging = os.system("ls /usr/share/elements | grep debug")
-        if debugging == 0:
-            print(Fore.RED + "Debugging Enabled" + Fore.WHITE)
+        if os.geteuid() != 0:
+            print(Fore.RED + "Fatal Error: You must run Elements as root.")
+            sys.exit()
         else:
-            print(Fore.GREEN + "Debugging Disabled" + Fore.WHITE)
+            pkgs = open('/usr/share/elements/pkgs', 'r')
+        packages = pkgs.read()
+        print(Fore.GREEN + "Pkgs Loaded")
     post()
 else:
-    debugger()
+    print("")
 
+# Check for Configuration File
+cfg_load = os.system("ls /usr/share/elements | grep cfg.py > /dev/null")
+# In case config file isnt found(command returns an answer other an 0), throw an error
+if cfg_load != 0:
+    print(Fore.RED + "Fatal Error: Config File Not Found.")
+    if DebugArgs:
+        print(Fore.RED + "Continuing with Errors" + Fore.WHITE)
+    else:
+        sys.exit()
+else:
+    # If successful run the config file
+    os.system("python3 /usr/share/elements/cfg.py")
+    print(Fore.GREEN + "Success: Config File Loaded" + Fore.WHITE)
+
+# Read first argument, mostly used for --add/--del etc
 full_cmd_arguments = sys.argv
 args1 = full_cmd_arguments[1:]
+# Read second argument, used for packages
 full_cmd_arguments = sys.argv
 args2 = full_cmd_arguments[2:]
 
+# If first args arent found, tell the user how to use Elements
 if not args1:
     print(Fore.RED + "Usage: 'lmt --option package'")
     helppage.helppage()
     sys.exit()
+else:
+    args = args1[0]
 
 
-debug = "false"
-helper = "false"
-invalid = "false"
-updating = "false"
-package_validity = ""
-args = args1[0]
-
-
+# Check for internet, since --update could do massive damage without internet
 def connect():
     try:
+        # Try find internet
         urllib.request.urlopen('https://google.com')
         return True
-
     except:
         return False
 
 
 if connect():
+    # Several CLI Arguments
     if args in ['--up', '-U', '--update']:
-        updating = "true"
         update.update()
     elif args in ['--ref', '-R', '--refresh']:
         update.refresh()
     elif args in ['--cfg-regen']:
         update.cfgregen()
     elif args in ['--help', '-h', '?']:
-        helper = "true"
         helppage.helppage()
     elif args in ['--ver', '-v']:
         helppage.version()
@@ -86,33 +85,20 @@ if connect():
     elif args in ['--configure', '--cfg']:
         ntgcfg.tui_interface()
     else:
-        if debugging == 0:
-            debug = "true"
-            debugger()
+        # Check for second argument
         if not args2:
             print(Fore.RED + "Error: you must specify what package to add/remove." + Fore.WHITE)
         else:
-            package_validity = "valid"
-
-        if package_validity in ['valid']:
+            # Make pkg str in install.py to be the second argument taken before
             install.pkg = args2[0]
-        else:
-            sys.exit()
-
     if args in ['--add', '-a']:
         install.install_pkg()
     elif args in ['--del', '-d', '--delete']:
         delete.delete_pkg()
     elif args in ['--sr', '--search', '-s']:
         search.search_pkg()
-    else:
-        if helper in ['true']:
-            print("")
-        elif debug in ['true']:
-            print("")
 
-    if invalid in ['true']:
-        debugger()
 
 else:
+    # Average Internet Error
     print(Fore.RED + "No internet. Cannot do " + args + " at the moment." + Fore.WHITE)

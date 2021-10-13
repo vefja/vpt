@@ -4,7 +4,11 @@ from colorama import Fore
 
 pkg = ""
 ver = 0
-#pkgs = open("/usr/share/elements/pkgs", 'a')
+if os.geteuid() != 0:
+    print(Fore.RED + "Fatal Error: You must run Elements as root.")
+    sys.exit()
+else:
+    pkgs = open("/usr/share/elements/pkgs", 'a')
 
 
 def pkgscheck():
@@ -17,7 +21,7 @@ def pkgscheck():
 
 def install_pkg():
     # Package Check 2
-    pkgvalid = os.system("ls ~/.lmt-repo/ | grep " + pkg + "> /dev/null")
+    pkgvalid = os.system("ls ~/.lmt-repo/ | grep " + pkg + " " + "> /dev/null")
     if pkgvalid == 256:
         print(Fore.RED + pkg + " is not a valid package." + Fore.WHITE)
     else:
