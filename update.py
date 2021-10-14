@@ -52,7 +52,7 @@ def cfgregen():
             sys.exit()
         else:
             # If input meaning is unsure, throw an error at the user, they should figure it out
-            print(Fore.RED + '"' + x + '"' + " is not a valid command." + Fore.WHITE)
+            print(Fore.RED + '"' + x + '"' + " is not understood." + Fore.WHITE)
             prompt()
-    # Start our new prompt
+    # Start the new prompt
     prompt()

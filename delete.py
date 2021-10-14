@@ -31,7 +31,7 @@ def delete_pkg():
             elif x in ['n']:
                 sys.exit()
             else:
-                print(Fore.RED + '"' + x + '"' + " is not a valid command.")
+                print(Fore.RED + '"' + x + '"' + " is not understood." + Fore.WHITE)
                 prompt()
 
         prompt()

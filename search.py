@@ -2,6 +2,7 @@ import os
 import install
 from colorama import Fore
 
+# TODO: change prompt of found, and for not found
 
 def search_pkg():
     searched_item = int(os.system("ls ~/.lmt-repo | grep " + install.pkg + " > /dev/null"))

@@ -40,7 +40,7 @@ def install_pkg():
                 print(";-;")
                 prompt()
             else:
-                print(Fore.RED + '"' + x + '"' + " is not a valid command." + Fore.WHITE)
+                print(Fore.RED + '"' + x + '"' + " is not understood." + Fore.WHITE)
                 prompt()
 
         prompt()

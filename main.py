@@ -1,19 +1,21 @@
 import delete
 import sys
-import install
-import update
-import search
-import helppage
+import install as add
+import update as upd
+import search as sr
+import helppage as help
 import os
 import urllib.request
 import ntgcfg
 from colorama import Fore
 
+packages = ""
+debug = False
 
 # Check for arguments that will disable POST
 full_cmd_arguments = sys.argv
 DebugArgs = full_cmd_arguments[3:]
-if not DebugArgs:
+if str(DebugArgs) not in ["['--debug']"]:
     print(Fore.GREEN + "Post Enabled" + Fore.WHITE)
     # P O S T, do all checks to be sure Elements can go ahead
     def post():
@@ -26,11 +28,15 @@ if not DebugArgs:
         print(Fore.GREEN + "Pkgs Loaded")
     post()
 else:
-    print("")
+    debug = True
+
 
 # Check for Configuration File
-cfg_load = os.system("ls /usr/share/elements | grep cfg.py > /dev/null")
-# In case config file isnt found(command returns an answer other an 0), throw an error
+if debug is False:
+    cfg_load = os.system("ls /usr/share/elements | grep cfg.py > /dev/null")
+else:
+    cfg_load = 1
+# In case config file isn't found(command returns an answer other an 0), throw an error
 if cfg_load != 0:
     print(Fore.RED + "Fatal Error: Config File Not Found.")
     if DebugArgs:
@@ -52,7 +58,7 @@ args2 = full_cmd_arguments[2:]
 # If first args arent found, tell the user how to use Elements
 if not args1:
     print(Fore.RED + "Usage: 'lmt --option package'")
-    helppage.helppage()
+    help.helppage()
     sys.exit()
 else:
     args = args1[0]
@@ -71,18 +77,23 @@ def connect():
 if connect():
     # Several CLI Arguments
     if args in ['--up', '-U', '--update']:
-        update.update()
+        upd.update()
     elif args in ['--ref', '-R', '--refresh']:
-        update.refresh()
+        upd.refresh()
     elif args in ['--cfg-regen']:
-        update.cfgregen()
+        upd.cfgregen()
     elif args in ['--help', '-h', '?']:
-        helppage.helppage()
+        if not args2:
+            help.helppage()
+        else:
+            help.args = str(full_cmd_arguments[2:])
+            help.man_command()
     elif args in ['--ver', '-v']:
-        helppage.version()
+        help.version()
     elif args in ['--list', '-l']:
         print("Packages: " + packages)
     elif args in ['--configure', '--cfg']:
+        os.system("clear")
         ntgcfg.tui_interface()
     else:
         # Check for second argument
@@ -90,13 +101,13 @@ if connect():
             print(Fore.RED + "Error: you must specify what package to add/remove." + Fore.WHITE)
         else:
             # Make pkg str in install.py to be the second argument taken before
-            install.pkg = args2[0]
+            add.pkg = args2[0]
     if args in ['--add', '-a']:
-        install.install_pkg()
+        add.install_pkg()
     elif args in ['--del', '-d', '--delete']:
         delete.delete_pkg()
     elif args in ['--sr', '--search', '-s']:
-        search.search_pkg()
+        sr.search_pkg()
 
 
 else:
