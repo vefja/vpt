@@ -22,7 +22,8 @@ def pkgscheck():
 def install_pkg():
     # Package Check 2
     pkgvalid = os.system("ls ~/.lmt-repo/ | grep " + pkg + " " + "> /dev/null")
-    if pkgvalid == 256:
+    if pkgvalid != 0:
+        # In case of the second Package Check failing
         print(Fore.RED + pkg + " is not a valid package." + Fore.WHITE)
     else:
         print("Are you sure you want to install " + pkg + "?")
@@ -36,9 +37,6 @@ def install_pkg():
                 pkgs.write(" " + pkg)
             elif x in ['n']:
                 sys.exit()
-            elif x in ['cry']:
-                print(";-;")
-                prompt()
             else:
                 print(Fore.RED + '"' + x + '"' + " is not understood." + Fore.WHITE)
                 prompt()

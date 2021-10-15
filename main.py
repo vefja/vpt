@@ -8,13 +8,27 @@ import os
 import urllib.request
 import ntgcfg
 from colorama import Fore
+import cfg
+
 
 packages = ""
 debug = False
+cc = 'none'
+cxx = 'none'
 
 # Check for arguments that will disable POST
 full_cmd_arguments = sys.argv
 DebugArgs = full_cmd_arguments[3:]
+
+
+# Elements P.O.S.T.
+# -----------------
+# P.O.S.T., is the Power On Self Test of Elements
+# It tests for every important feature
+# But to make debugging easy on other platforms there is a '--debug' flag at the end
+# '--debug' can also remove the need for the 'cfg.py' file, which is not recommended
+
+
 if str(DebugArgs) not in ["['--debug']"]:
     print(Fore.GREEN + "Post Enabled" + Fore.WHITE)
     # P O S T, do all checks to be sure Elements can go ahead
@@ -47,6 +61,10 @@ else:
     # If successful run the config file
     os.system("python3 /usr/share/elements/cfg.py")
     print(Fore.GREEN + "Success: Config File Loaded" + Fore.WHITE)
+
+if str(DebugArgs) not in ["['--debug']"]:
+    print(Fore.GREEN + "Current C Compiler: " + cfg.cc + Fore.WHITE)
+    print(Fore.GREEN + "Current C++ Compiler: " + cfg.cxx + Fore.WHITE)
 
 # Read first argument, mostly used for --add/--del etc
 full_cmd_arguments = sys.argv
@@ -88,7 +106,7 @@ if connect():
         else:
             help.args = str(full_cmd_arguments[2:])
             help.man_command()
-    elif args in ['--ver', '-v']:
+    elif args in ['--ver', '-v', "--version"]:
         help.version()
     elif args in ['--list', '-l']:
         print("Packages: " + packages)
