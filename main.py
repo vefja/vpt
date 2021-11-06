@@ -35,11 +35,10 @@ if str(DebugArgs) not in ["['--debug']"]:
 
     # P O S T, do all checks to be sure Elements can go ahead
     if os.geteuid() != 0:
-        print(Fore.RED + "Fatal Error: You must run Elements as root.")
+        print(Fore.RED + "Fatal Error: You must run Elements as root." + Fore.WHITE)
         sys.exit()
     else:
         ok_post = True
-
 
 
 else:
@@ -47,9 +46,11 @@ else:
 if ok_post is True:
     pkgs = open('/etc/elements/pkgs', 'r')
     packages = pkgs.read()
+    add.current_pkgs = packages
     print(Fore.GREEN + "Pkgs Loaded")
 
 pkg_num = len(packages.split())
+ntgcfg.Debug = DebugArgs
 
 # Check for Configuration File
 if debug is False:
@@ -58,7 +59,7 @@ else:
     cfg_load = 1
 # In case config file isn't found(command returns an answer other an 0), throw an error
 if cfg_load != 0:
-    print(Fore.RED + "Fatal Error: Config File Not Found.")
+    print(Fore.RED + "Fatal Error: Config File Not Found." + Fore.WHITE)
     if DebugArgs:
         print(Fore.RED + "Continuing with Errors" + Fore.WHITE)
     else:
@@ -80,7 +81,9 @@ else:
         time.sleep(0.3)
         print("." + Fore.WHITE)
         repos = cfg.repos
-
+        add.ntgrepo = repos[0]
+        add.customrepo1 = repos[1]
+        add.customrepo2 = repos[2]
 
     print(Fore.GREEN + "Success: Config File Loaded" + Fore.WHITE)
 
@@ -133,7 +136,7 @@ if connect():
     elif args in ['--configure', '--cfg']:
         os.system("clear")
         ntgcfg.tui_interface()
-    elif args in['--lmt-gui-start']:
+    elif args in ['--gui']:
         print(Fore.RED + "Running Elements in Debug Mode." + Fore.WHITE)
         import lmtgui
     else:
@@ -143,12 +146,12 @@ if connect():
         else:
             # Make pkg str in install.py to be the second argument taken before
             add.pkg = args2[0]
-    if args in ['--add', '-a']:
-        add.install_pkg()
-    elif args in ['--del', '-d', '--delete']:
-        delete.delete_pkg()
-    elif args in ['--sr', '--search', '-s']:
-        sr.search_pkg()
+            if args in ['--add', '-a']:
+                add.install_pkg()
+            elif args in ['--del', '-d', '--delete']:
+                delete.delete_pkg()
+            elif args in ['--sr', '--search', '-s']:
+                sr.search_pkg()
 
 
 else:

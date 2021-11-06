@@ -2,20 +2,17 @@ import os # OS Lib for clear command
 import sys # Sys is needed for exit
 from colorama import Fore # Colorama for coloured text
 
+Debug = ''
+
 # Start Configuration Tool for Nitrogen Configuration
 def ntg_configuration():
-    print("Currently Configuring: Nitrogen")
-    print("1) Regenerate .bashrc")
-    print("2) Change Default Kernel")
     x = int(input(Fore.GREEN + "1" + Fore.WHITE + "/" + Fore.CYAN + "2" + " " + Fore.WHITE))
-    if x == 1: # https://raw.githubusercontent.com/NitrogenLinux/Nitrogen/main/.bashrc
-        print("This will remove your current .bashrc configuration")
-        print("Are you sure?")
+    if x == 1:
+        print("This will Regenerate your GRUB Configuration. Are you sure?")
         def prompt():
             x = str(input(Fore.GREEN + "Y" + Fore.WHITE + "/" + Fore.RED + "n" + ' ' + Fore.WHITE))
             if x in ['y']:
-                # TODO: Finish regeneration of .bashrc
-                print("Unfinished")
+                os.system("update-grub")
             elif x in ['n']:
                 sys.exit()
             else:
@@ -24,16 +21,16 @@ def ntg_configuration():
         prompt()
 
     elif x == 2:
-        # TODO: Make option to change kernel
-        print("Coming soon")
+        os.system('nano /etc/default/grub')
     else:
         print(Fore.RED + "Command not understood." + Fore.WHITE)
+        ntg_configuration()
 
 # Start configuration tool for Elements Configuration
 def lmt_configuration():
     # TODO: Make Elements configuration possible from the application itself, using a tui
     print("Currently Configuring: Elements")
-    print("Not Functional Yet. Configure it manually in cfg.py.")
+    print("Under Construction.")
 
 # Interface for choosing between LMT and NTG Config
 def tui_interface():
@@ -42,15 +39,18 @@ def tui_interface():
     print("---------------------------")
     print("What would you like to do today?")
     # TODO: Some more options on each would be welcome
-    print("1) Configure " + Fore.GREEN + "Nitrogen" + Fore.WHITE)
-    print("2) Configure " + Fore.CYAN + "Elements" + Fore.WHITE)
+    print("1) Configure " + Fore.CYAN + "Nitrogen" + Fore.WHITE)
+    print("2) Configure " + Fore.LIGHTGREEN_EX + "Elements" + Fore.WHITE)
 
     # Create a 1/2 Prompt
     def prompt1():
         # Get input of keyboard and translate it to int
-        x = int(input(Fore.GREEN + "1" + Fore.WHITE + "/" + Fore.CYAN + "2" + " " + Fore.WHITE))
+        x = int(input(Fore.CYAN + "1" + Fore.WHITE + "/" + Fore.LIGHTGREEN_EX + "2" + " " + Fore.WHITE))
         if x == 1:
             # Start Configuring Nitrogen
+            print("Currently Configuring: Nitrogen")
+            print("1) Regenerate GRUB Configuration")
+            print("2) Open GRUB Configuration file")
             ntg_configuration()
         elif x == 2:
             # Start configuring Elements

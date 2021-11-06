@@ -1,5 +1,5 @@
 from colorama import Fore
-ver = "Next Branch"
+ver = "Zero-Nine RC1"
 
 args = ''
 
@@ -88,3 +88,4 @@ def man_command():
 
 def version():
     print("Elements " + ver)
+    print(Fore.CYAN + "Made by tekq!")
