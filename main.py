@@ -1,5 +1,6 @@
 import delete
 import sys
+import time
 import install as add
 import update as upd
 import search as sr
@@ -8,18 +9,18 @@ import os
 import urllib.request
 import ntgcfg
 from colorama import Fore
-import cfg
 
-
-packages = ""
+# Get arguments
+full_cmd_arguments = sys.argv
+# Declare some things before
+packages = ''
+ok_post = False
 debug = False
 cc = 'none'
 cxx = 'none'
 
-# Check for arguments that will disable POST
-full_cmd_arguments = sys.argv
+# look for P.O.S.T. disabling arguments
 DebugArgs = full_cmd_arguments[3:]
-
 
 # Elements P.O.S.T.
 # -----------------
@@ -31,23 +32,28 @@ DebugArgs = full_cmd_arguments[3:]
 
 if str(DebugArgs) not in ["['--debug']"]:
     print(Fore.GREEN + "Post Enabled" + Fore.WHITE)
+
     # P O S T, do all checks to be sure Elements can go ahead
-    def post():
-        if os.geteuid() != 0:
-            print(Fore.RED + "Fatal Error: You must run Elements as root.")
-            sys.exit()
-        else:
-            pkgs = open('/usr/share/elements/pkgs', 'r')
-        packages = pkgs.read()
-        print(Fore.GREEN + "Pkgs Loaded")
-    post()
+    if os.geteuid() != 0:
+        print(Fore.RED + "Fatal Error: You must run Elements as root.")
+        sys.exit()
+    else:
+        ok_post = True
+
+
+
 else:
     debug = True
+if ok_post is True:
+    pkgs = open('/etc/elements/pkgs', 'r')
+    packages = pkgs.read()
+    print(Fore.GREEN + "Pkgs Loaded")
 
+pkg_num = len(packages.split())
 
 # Check for Configuration File
 if debug is False:
-    cfg_load = os.system("ls /usr/share/elements | grep cfg.py > /dev/null")
+    cfg_load = os.system("ls /etc/elements | grep cfg.py > /dev/null")
 else:
     cfg_load = 1
 # In case config file isn't found(command returns an answer other an 0), throw an error
@@ -58,22 +64,36 @@ if cfg_load != 0:
     else:
         sys.exit()
 else:
-    # If successful run the config file
-    os.system("python3 /usr/share/elements/cfg.py")
+    # If successful import the config file
+    sys.path.insert(0, '/etc/elements/cfg.py')
+    import cfg
+
+    if cfg.custom_repos is True:
+        print(Fore.GREEN + "Setting Repositories", end='')
+        sys.stdout.flush()
+        time.sleep(0.3)
+        print(".", end='')
+        sys.stdout.flush()
+        time.sleep(0.2)
+        print(".", end='')
+        sys.stdout.flush()
+        time.sleep(0.3)
+        print("." + Fore.WHITE)
+        repos = cfg.repos
+
+
     print(Fore.GREEN + "Success: Config File Loaded" + Fore.WHITE)
 
 if str(DebugArgs) not in ["['--debug']"]:
     print(Fore.GREEN + "Current C Compiler: " + cfg.cc + Fore.WHITE)
     print(Fore.GREEN + "Current C++ Compiler: " + cfg.cxx + Fore.WHITE)
 
-# Read first argument, mostly used for --add/--del etc
-full_cmd_arguments = sys.argv
+# take first argument, used for commands
 args1 = full_cmd_arguments[1:]
-# Read second argument, used for packages
-full_cmd_arguments = sys.argv
+# take second argument from arguments, mostly used from packages, can be ignored for some functions
 args2 = full_cmd_arguments[2:]
 
-# If first args arent found, tell the user how to use Elements
+# If first args aren't found, tell the user how to use Elements
 if not args1:
     print(Fore.RED + "Usage: 'lmt --option package'")
     help.helppage()
@@ -109,10 +129,13 @@ if connect():
     elif args in ['--ver', '-v', "--version"]:
         help.version()
     elif args in ['--list', '-l']:
-        print("Packages: " + packages)
+        print("Packages", " (", pkg_num, ") ", ": ", packages)
     elif args in ['--configure', '--cfg']:
         os.system("clear")
         ntgcfg.tui_interface()
+    elif args in['--lmt-gui-start']:
+        print(Fore.RED + "Running Elements in Debug Mode." + Fore.WHITE)
+        import lmtgui
     else:
         # Check for second argument
         if not args2:

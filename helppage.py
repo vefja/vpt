@@ -22,13 +22,13 @@ def helppage():
 
 
 def man_command():
-    if args in ["['add']"]:
+    if args in ["['add']", "['install']"]:
         print("Elements --add")
         print("--------------")
         print("Installs a package")
         print("--------------")
         print("Syntax: 'lmt --add package'")
-    elif args in ["['del']", "['delete']"]:
+    elif args in ["['del']", "['delete']", "['remove']", "['rm']"]:
         print("Elements --del")
         print("--------------")
         print("Removes a package")

@@ -6,14 +6,14 @@ import helppage
 
 def refresh():
     # Remove current repo to make space for new repo
-    os.system("rm -rf ~/.lmt-repo")
+    os.system("rm -rf /etc/elements/repos/nitrogen")
 
     # Reclone and Warning to not exit
     print("Recloning repository, do not exit. Exiting may break your repository or even make system unbootable.")
-    os.system("git clone https://github.com/tekq/elements-repo.git ~/.lmt-repo")
+    os.system("git clone https://github.com/tekq/elements-repo.git /etc/elements/repos/nitrogen")
 
     # Read installed version and newest version
-    currentver = os.popen('cat ~/.lmt-repo/.current-ver').read()
+    currentver = os.popen('cat /etc/elements/repos/nitrogen/.current-ver').read()
     ver = helppage.ver
 
     # Print the versions
@@ -23,12 +23,13 @@ def refresh():
 
 
 def update():
+    ## TODO: remake current updating system to be better
     # backup current executable
-    os.system("mv -fv /usr/share/elements/lmt /usr/share/elements/lmt.bak")
+    os.system("mv -fv /etc/elements/lmt /etc/elements/lmt.bak")
 
     # download the new executable
     os.system("wget https://raw.githubusercontent.com/NitrogenLinux/elements/main/dist/lmt")
-    os.system("mv -fv lmt /usr/share/elements/lmt")
+    os.system("mv -fv lmt /etc/elements/lmt")
 
     # refresh repositories
     refresh()   
@@ -46,7 +47,7 @@ def cfgregen():
             # If yes it will regenerate
             print("Regenerating Config...")
             os.system("curl https://raw.githubusercontent.com/NitrogenLinux/elements/main/cfg.py > "
-                      "/usr/share/elements/cfg.py")
+                      "/etc/elements/cfg.py")
         elif x in ['n']:
             # If not it will exit
             sys.exit()

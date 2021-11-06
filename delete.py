@@ -3,13 +3,13 @@ import os
 import sys
 from colorama import Fore
 
-pkgs = open('/usr/share/elements/pkgs', 'r')
+pkgs = open('/etc/elements/pkgs', 'r')
 packages = pkgs.read()
 
 
 def delete_pkg():
     # valid package check
-    pkgvalid = os.system("ls ~/.lmt-repo/ | grep " + install.pkg + "> /dev/null")
+    pkgvalid = os.system("ls /etc/elements/repos/nitrogen/ | grep " + install.pkg + "> /dev/null")
     if pkgvalid == 256:
         print(Fore.RED + install.pkg + " is not a valid package." + Fore.WHITE)
     else:
@@ -24,8 +24,8 @@ def delete_pkg():
                 os.system("rm -v /usr/bin/" + install.pkg)
                 os.system("rm -rf -v /usr/src/" + install.pkg)
                 afterrmpkgs = packages.replace(install.pkg, "")
-                open('/usr/share/elements/pkgs', 'w').close()
-                pkgs = open('/usr/share/elements/pkgs', 'a')
+                open('/etc/elements/pkgs', 'w').close()
+                pkgs = open('/etc/elements/pkgs', 'a')
                 pkgs.write(afterrmpkgs)
                 print("Removed " + install.pkg + " successfully")
             elif x in ['n']:

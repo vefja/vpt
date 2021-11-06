@@ -8,19 +8,21 @@ if os.geteuid() != 0:
     print(Fore.RED + "Fatal Error: You must run Elements as root.")
     sys.exit()
 else:
-    pkgs = open("/usr/share/elements/pkgs", 'a')
+    pkgs = open("/etc/elements/pkgs", 'a')
 
 
 def pkgscheck():
-    if os.path.exists("/usr/share/elements/pkgs"):
+    if os.path.exists("/etc/elements/pkgs"):
         pass
     else:
-        file = open("/usr/share/elements/pkgs", 'w')
+        file = open("/etc/elements/pkgs", 'w')
         file.close()
 
 
 def install_pkg():
     # Package Check 2
+    ## TODO: tell the repository to the user
+    ##  ex: 'Repository: Nitrogen/Repository: Arch/Repository: Custom1'
     pkgvalid = os.system("ls ~/.lmt-repo/ | grep " + pkg + " " + "> /dev/null")
     if pkgvalid != 0:
         # In case of the second Package Check failing
