@@ -1,6 +1,4 @@
-import install
-import os
-import sys
+import install, os, sys, protect
 from colorama import Fore
 
 pkgs = open('/etc/elements/pkgs', 'r')
@@ -8,6 +6,20 @@ packages = pkgs.read()
 
 
 def delete_pkg():
+    protected = install.pkg in protect.protected_package
+    # Check if deleting package is protected
+    if protected is True:
+        print(Fore.RED + "The package you are trying to remove is protected" + Fore.WHITE)
+        print(Fore.RED + "Continuing with your removal is not recommended" + Fore.WHITE)
+        print("If you know what you are doing, type 'Yes, I want to proceed.' to remove this package")
+        protected_confirm = input()
+        if protected_confirm == "Yes, I want to proceed.":
+            print(Fore.GREEN + "Continuing..." + Fore.WHITE)
+        elif protected_confirm == "exit":
+            sys.exit()
+        else:
+            print(Fore.RED + "Error: Trying to remove protected package, cannot continue.")
+            sys.exit()
     # valid package check
     pkgvalid = os.system("ls /etc/elements/repos/Nitrogen/ | grep " + install.pkg + "> /dev/null")
     pkgvalid = os.system("ls /etc/elements/repos/" + install.ntgrepo + "/ | grep " + install.pkg + " " + "> /dev/null")

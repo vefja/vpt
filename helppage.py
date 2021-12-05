@@ -91,4 +91,4 @@ def man_command():
 
 def version():
     print("Elements " + ver)
-    print(Fore.CYAN + "Made by tekq!")
+    
