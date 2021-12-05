@@ -27,15 +27,15 @@ def pkgscheck():
 def install_pkg():
     # Package Check 2
     global invalid_pkg
-    pkgvalid = os.system("ls /etc/elements/repos" + ntgrepo + "/ | grep " + pkg + " " + "> /dev/null")
+    pkgvalid = os.system("ls /etc/elements/repos/" + ntgrepo + "/ | grep " + pkg + " " + "> /dev/null")
     inrepo = 'Nitrogen'
     origin = 'Nitrogen'
     if pkgvalid != 0:
-        pkgvalid = os.system("ls /etc/elements/repos" + customrepo1 + "/ | grep " + pkg + " " + "> /dev/null")
+        pkgvalid = os.system("ls /etc/elements/repos/" + customrepo1 + "/ | grep " + pkg + " " + "> /dev/null")
         inrepo = customrepo1
         origin = 'Custom'
     if pkgvalid != 0:
-        pkgvalid = os.system("ls /etc/elements/repos" + customrepo2 + "/ | grep " + pkg + " " + "> /dev/null")
+        pkgvalid = os.system("ls /etc/elements/repos/" + customrepo2 + "/ | grep " + pkg + " " + "> /dev/null")
         inrepo = customrepo2
         origin = 'Custom'
     if pkgvalid != 0:
