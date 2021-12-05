@@ -1,23 +1,26 @@
-import os # OS Lib for clear command
-import sys # Sys is needed for exit
-from colorama import Fore # Colorama for coloured text
+import os  # OS Lib for clear command
+import sys  # Sys is needed for exit
+from colorama import Fore  # Colorama for coloured text
 
 Debug = ''
+
 
 # Start Configuration Tool for Nitrogen Configuration
 def ntg_configuration():
     x = int(input(Fore.GREEN + "1" + Fore.WHITE + "/" + Fore.CYAN + "2" + " " + Fore.WHITE))
     if x == 1:
         print("This will Regenerate your GRUB Configuration. Are you sure?")
+
         def prompt():
-            x = str(input(Fore.GREEN + "Y" + Fore.WHITE + "/" + Fore.RED + "n" + ' ' + Fore.WHITE))
-            if x in ['y']:
+            option = str(input(Fore.GREEN + "Y" + Fore.WHITE + "/" + Fore.RED + "n" + ' ' + Fore.WHITE))
+            if option in ['y']:
                 os.system("update-grub")
-            elif x in ['n']:
+            elif option in ['n']:
                 sys.exit()
             else:
-                print(Fore.RED + '"' + x + '"' + " is not understood." + Fore.WHITE)
+                print(Fore.RED + '"' + option + '"' + " is not understood." + Fore.WHITE)
                 prompt()
+
         prompt()
 
     elif x == 2:
@@ -26,11 +29,13 @@ def ntg_configuration():
         print(Fore.RED + "Command not understood." + Fore.WHITE)
         ntg_configuration()
 
+
 # Start configuration tool for Elements Configuration
 def lmt_configuration():
     # TODO: Make Elements configuration possible from the application itself, using a tui
     print("Currently Configuring: Elements")
     print("Under Construction.")
+
 
 # Interface for choosing between LMT and NTG Config
 def tui_interface():
@@ -57,7 +62,8 @@ def tui_interface():
             lmt_configuration()
         else:
             # Error in case of stroke
-            print(Fore.RED + '"' + x + '"' + " is not understood." + Fore.WHITE)
+            print(Fore.RED + '"' + str(x) + '"' + " is not understood." + Fore.WHITE)
             prompt1()
+
     # Run Prompt
     prompt1()

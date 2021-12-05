@@ -6,6 +6,7 @@ ntgrepo = ''
 customrepo1 = ''
 customrepo2 = ''
 current_pkgs = ''
+invalid_pkg = 0
 pkg = ""
 ver = 0
 if os.geteuid() != 0:
@@ -22,21 +23,19 @@ def pkgscheck():
         file = open("/etc/elements/pkgs", 'w')
         file.close()
 
-def gui_install():
-    print()
 
 def install_pkg():
     # Package Check 2
     global invalid_pkg
-    pkgvalid = os.system("ls /etc/elements/repos/" + ntgrepo + "/ | grep " + pkg + " " + "> /dev/null")
+    pkgvalid = os.system("ls /etc/elements/repos" + ntgrepo + "/ | grep " + pkg + " " + "> /dev/null")
     inrepo = 'Nitrogen'
     origin = 'Nitrogen'
     if pkgvalid != 0:
-        pkgvalid = os.system("ls /etc/elements/repos/" + customrepo1 + "/ | grep " + pkg + " " + "> /dev/null")
+        pkgvalid = os.system("ls /etc/elements/repos" + customrepo1 + "/ | grep " + pkg + " " + "> /dev/null")
         inrepo = customrepo1
         origin = 'Custom'
     if pkgvalid != 0:
-        pkgvalid = os.system("ls /etc/elements/repos/" + customrepo2 + "/ | grep " + pkg + " " + "> /dev/null")
+        pkgvalid = os.system("ls /etc/elements/repos" + customrepo2 + "/ | grep " + pkg + " " + "> /dev/null")
         inrepo = customrepo2
         origin = 'Custom'
     if pkgvalid != 0:
@@ -49,7 +48,7 @@ def install_pkg():
 
     if pkg in current_pkgs:
         print(pkg + " already installed.")
-    if invalid_pkg == 0:
+    elif invalid_pkg == 0:
         print("Installing: " + pkg)
         print("Repository: " + origin + '/' + inrepo)
 

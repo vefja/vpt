@@ -11,16 +11,13 @@ import ntgcfg
 from colorama import Fore
 
 # Get arguments
-full_cmd_arguments = sys.argv
+arguments = sys.argv
 # Declare some things before
 packages = ''
 ok_post = False
-debug = False
-cc = 'none'
-cxx = 'none'
 
 # look for P.O.S.T. disabling arguments
-DebugArgs = full_cmd_arguments[3:]
+DebugArgs = arguments[3:]
 
 # Elements P.O.S.T.
 # -----------------
@@ -29,20 +26,30 @@ DebugArgs = full_cmd_arguments[3:]
 # But to make debugging easy on other platforms there is a '--debug' flag at the end
 # '--debug' can also remove the need for the 'cfg.py' file, which is not recommended
 
+# Elements Debug
+# --------------
+# The included Debugging feature disables the P.O.S.T.
+# But it also disables Configuration file, and with mode,
+# also in general Debug Mode is for debugging on other
+# Operating Systems, so do not use it for another reason.
 
-if str(DebugArgs) not in ["['--debug']"]:
+
+if DebugArgs:
+    DebugArgs = DebugArgs[0]
+    print(DebugArgs)
+    if DebugArgs not in '--debug':
+        print(Fore.RED + 'Debug Arguments Invalid')
+else:
+    ok_post = True
     print(Fore.GREEN + "Post Enabled" + Fore.WHITE)
 
-    # P O S T, do all checks to be sure Elements can go ahead
-    if os.geteuid() != 0:
-        print(Fore.RED + "Fatal Error: You must run Elements as root." + Fore.WHITE)
-        sys.exit()
-    else:
-        ok_post = True
-
-
+# P O S T, do all checks to be sure Elements can go ahead
+if os.geteuid() != 0:
+    print(Fore.RED + "Fatal Error: You must run Elements as root." + Fore.WHITE)
+    sys.exit()
 else:
-    debug = True
+    ok_post = True
+
 if ok_post is True:
     pkgs = open('/etc/elements/pkgs', 'r')
     packages = pkgs.read()
@@ -53,8 +60,11 @@ pkg_num = len(packages.split())
 ntgcfg.Debug = DebugArgs
 
 # Check for Configuration File
-if debug is False:
+if ok_post is True:
     cfg_load = os.system("ls /etc/elements | grep cfg.py > /dev/null")
+elif ok_post is False:
+    cfg_load = 0
+    print(Fore.RED + "Running in Debug Mode. Configuration File will not be used.")
 else:
     cfg_load = 1
 # In case config file isn't found(command returns an answer other an 0), throw an error
@@ -69,7 +79,7 @@ else:
     sys.path.insert(0, '/etc/elements/cfg.py')
     import cfg
 
-    if cfg.custom_repos is True:
+    if cfg.repos_enabled is True:
         print(Fore.GREEN + "Setting Repositories", end='')
         sys.stdout.flush()
         time.sleep(0.3)
@@ -87,22 +97,31 @@ else:
 
     print(Fore.GREEN + "Success: Config File Loaded" + Fore.WHITE)
 
-if str(DebugArgs) not in ["['--debug']"]:
-    print(Fore.GREEN + "Current C Compiler: " + cfg.cc + Fore.WHITE)
-    print(Fore.GREEN + "Current C++ Compiler: " + cfg.cxx + Fore.WHITE)
+if not DebugArgs:
+    ok_post = True
+    if cfg.plugins_enabled is True:
+        plugins = [cfg.plugins[0:], ]
+        for plugin in plugins:
+            sys.path.append('/etc/elements/plugins')
+            import_plugin1 = "import {0}".format(plugin[0], ', '.join(str(i) for i in plugin[1:]))
+            exec(import_plugin1)
+            import_plugin_stage2 = "import {1}".format(plugin[0], ', '.join(str(i) for i in plugin[1:]))
+            exec(import_plugin_stage2)
 
-# take first argument, used for commands
-args1 = full_cmd_arguments[1:]
-# take second argument from arguments, mostly used from packages, can be ignored for some functions
-args2 = full_cmd_arguments[2:]
-
-# If first args aren't found, tell the user how to use Elements
-if not args1:
+arguments = arguments[1:]
+pkg_args = arguments[1:]
+# search for argument 1 and 2
+if not arguments:
     print(Fore.RED + "Usage: 'lmt --option package'")
     help.helppage()
     sys.exit()
 else:
-    args = args1[0]
+    if not pkg_args:
+        print(Fore.RED + "You must specify what package to add/remove.")
+        sys.exit()
+
+# take first argument, used for commands
+args = arguments[0]
 
 
 # Check for internet, since --update could do massive damage without internet
@@ -124,10 +143,10 @@ if connect():
     elif args in ['--cfg-regen']:
         upd.cfgregen()
     elif args in ['--help', '-h', '?']:
-        if not args2:
+        if not pkg_args:
             help.helppage()
         else:
-            help.args = str(full_cmd_arguments[2:])
+            help.args = str(arguments[2:])
             help.man_command()
     elif args in ['--ver', '-v', "--version"]:
         help.version()
@@ -139,20 +158,18 @@ if connect():
     elif args in ['--gui']:
         print(Fore.RED + "Running Elements in Debug Mode." + Fore.WHITE)
         import lmtgui
-    else:
-        # Check for second argument
-        if not args2:
-            print(Fore.RED + "Error: you must specify what package to add/remove." + Fore.WHITE)
-        else:
-            # Make pkg str in install.py to be the second argument taken before
-            add.pkg = args2[0]
-            if args in ['--add', '-a']:
-                add.install_pkg()
-            elif args in ['--del', '-d', '--delete']:
-                delete.delete_pkg()
-            elif args in ['--sr', '--search', '-s']:
-                sr.search_pkg()
 
+        lmtgui.exit()
+    else:
+
+        # Make pkg str in install.py to be the second argument taken before
+        add.pkg = pkg_args[0]
+        if args in ['--add', '-a']:
+            add.install_pkg()
+        elif args in ['--del', '-d', '--delete']:
+            delete.delete_pkg()
+        elif args in ['--sr', '--search', '-s']:
+            sr.search_pkg()
 
 else:
     # Average Internet Error

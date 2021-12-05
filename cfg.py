@@ -1,15 +1,16 @@
-import sys
-import time
-import os
-from colorama import Fore
-
-# TODO: configure elements using cfg.py
-cc = 'gcc'
-cxx = 'g++'
-
-custom_repos = True
-
-# Max 3 repos
+## Repositories
+# Enable/Disable repositories
+repos_enabled = True
+# Add Repositories in quotation marks, Maximum 3 Repositories
 repos = ['Nitrogen',
-         'Testing1',
-         'Testing2', ]
+         '',
+         '', ]
+
+## Plugins
+# True = Enables Plugins | False = Disables Plugins
+plugins_enabled = False
+# Head over to the wiki to learn how to add plugins
+plugins = [
+    '',
+    '',
+]

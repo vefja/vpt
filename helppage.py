@@ -1,7 +1,9 @@
 from colorama import Fore
-ver = "Zero-Nine RC1"
+
+ver = "Zero-Nine"
 
 args = ''
+
 
 def helppage():
     print(Fore.CYAN + "Elements " + ver + Fore.WHITE)
@@ -85,6 +87,7 @@ def man_command():
         print("Syntax: 'lmt --help'")
         print("or")
         print("Syntax: 'lmt --help command'")
+
 
 def version():
     print("Elements " + ver)

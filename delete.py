@@ -14,11 +14,13 @@ def delete_pkg():
     inrepo = 'Nitrogen'
     origin = 'Nitrogen'
     if pkgvalid != 0:
-        pkgvalid = os.system("ls /etc/elements/repos/" + install.customrepo1 + "/ | grep " + install.pkg + " " + "> /dev/null")
+        pkgvalid = os.system(
+            "ls /etc/elements/repos/" + install.customrepo1 + "/ | grep " + install.pkg + " " + "> /dev/null")
         inrepo = install.customrepo1
         origin = 'Custom'
     if pkgvalid != 0:
-        pkgvalid = os.system("ls /etc/elements/repos/" + install.customrepo2 + "/ | grep " + install.pkg + " " + "> /dev/null")
+        pkgvalid = os.system(
+            "ls /etc/elements/repos/" + install.customrepo2 + "/ | grep " + install.pkg + " " + "> /dev/null")
         inrepo = install.customrepo2
         origin = 'Custom'
     if pkgvalid != 0:
@@ -27,9 +29,6 @@ def delete_pkg():
         if invalid_pkg != 0:
             print(Fore.RED + "Couldn't default to pacman" + Fore.WHITE)
             print("Program Terminated. Invalid/Nonexistent Package.")
-    #if pkgvalid != 0:
-    #    print(Fore.RED + "Error: " + "Couldn't default to pacman.")
-    #    print(Fore.RED + install.pkg + " is not a valid package." + Fore.WHITE)
     if pkgvalid == 0:
         print(Fore.WHITE + "Are you sure you want to uninstall " + install.pkg + "?")
 

@@ -1,7 +1,6 @@
 import gi
 import update as up
 
-
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
@@ -36,7 +35,7 @@ class TreeViewFilterWindow(Gtk.Window):
         # creating the treeview, making it use the filter as a model, and adding the columns
         self.treeview = Gtk.TreeView(model=self.category_filter)
         for i, column_title in enumerate(
-            ["Package", "Category"]
+                ["Package", "Category"]
         ):
             renderer = Gtk.CellRendererText()
             column = Gtk.TreeViewColumn(column_title, renderer, text=i)
@@ -62,10 +61,10 @@ class TreeViewFilterWindow(Gtk.Window):
 
         self.show_all()
 
-    def category_filter_func(self, model, iter, data):
+    def category_filter_func(self, model, iter):
         if (
-            self.current_filter_category is None
-            or self.current_filter_category == "Clear"
+                self.current_filter_category is None
+                or self.current_filter_category == "Clear"
         ):
             return True
         else:
@@ -76,9 +75,9 @@ class TreeViewFilterWindow(Gtk.Window):
         self.current_filter_category = widget.get_label()
         print('Debug: Action: ', '%s' % self.current_filter_category)
         if self.current_filter_category in 'Add':
-            print("hmm")
+            print()
         elif self.current_filter_category in 'Delete':
-            print("hmm2")
+            print()
         elif self.current_filter_category in 'Update':
             up.update()
 
@@ -87,3 +86,7 @@ win = TreeViewFilterWindow()
 win.connect("destroy", Gtk.main_quit)
 win.show_all()
 Gtk.main()
+
+
+def exit():
+    print("Exit.")

@@ -6,19 +6,19 @@ import helppage
 
 def refresh():
     # Remove current repo to make space for new repo
-    # os.system("rm -rf /etc/elements/repos/Nitrogen")
+    os.system("rm -rf /etc/elements/repos/Nitrogen")
 
     # Reclone and Warning to not exit
-    # print("Recloning repository, do not exit. Exiting may break your repository or even make system unbootable.")
-    # os.system("git clone https://github.com/tekq/elements-repo.git /etc/elements/repos/Nitrogen")
+    print("Recloning repository, do not exit. Exiting may break your repository files.")
+    os.system("git clone https://github.com/tekq/elements-repo.git /etc/elements/repos/Nitrogen")
     # Update pacman
-    # os.system("pacman -Syu")
+    os.system("pacman -Syu --noconfirm")
 
     # Read installed version and newest version
     currentver = os.popen('cat /etc/elements/repos/Nitrogen/.current-ver').read()
     ver = helppage.ver
 
-    if (ver == currentver) == False:
+    if not (ver == currentver):
         print("It is recommended to update to the latest Elements update.")
         print("Installed version: " + ver)
         print("Newest version: " + currentver)
@@ -27,13 +27,12 @@ def refresh():
 
 
 def update():
-    ## TODO: remake current updating system to be better
     # backup current executable
-    #os.system("mv -fv /etc/elements/lmt /etc/elements/lmt.bak")
+    os.system("mv -fv /etc/elements/lmt /etc/elements/lmt.bak")
 
     # download the new executable
-    #os.system("wget https://raw.githubusercontent.com/NitrogenLinux/elements/main/builds/lmt")
-    #os.system("mv -fv lmt /etc/elements/lmt")
+    os.system("wget https://raw.githubusercontent.com/NitrogenLinux/elements/main/builds/lmt")
+    os.system("mv -fv lmt /etc/elements/lmt")
 
     # refresh repositories
     refresh()
@@ -51,6 +50,7 @@ def cfgregen():
         if x in ['y']:
             # If yes it will regenerate
             print("Regenerating Config...")
+            os.system("rm -rv /etc/elements/cfg.py")
             os.system("curl https://raw.githubusercontent.com/NitrogenLinux/elements/main/cfg.py > "
                       "/etc/elements/cfg.py")
         elif x in ['n']:
