@@ -5,40 +5,61 @@ import helppage
 
 
 def refresh():
-    print("Remove repo")
-    os.system("rm -rf ~/.lmt-repo")
-    print("Reclone it")
-    os.system("git clone https://github.com/tekq/elements-repo.git ~/.lmt-repo")
-    print("Checking for updates")
-    currentver = os.popen('cat ~/.lmt-repo/.current-ver').read()
+    # Remove current repo to make space for new repo
+    os.system("rm -rf /etc/elements/repos/Nitrogen")
+
+    # Reclone and Warning to not exit
+    print("Recloning repository, do not exit. Exiting may break your repository files.")
+    os.system("git clone https://github.com/tekq/elements-repo.git /etc/elements/repos/Nitrogen")
+    # Update pacman
+    os.system("pacman -Syu --noconfirm")
+
+    # Read installed version and newest version
+    currentver = os.popen('cat /etc/elements/repos/Nitrogen/.current-ver').read()
     ver = helppage.ver
-    print("Local Elements version: " + ver)
-    print("Newest Elements version: " + currentver)
+
+    if not (ver == currentver):
+        print("It is recommended to update to the latest Elements update.")
+        print("Installed version: " + ver)
+        print("Newest version: " + currentver)
+    else:
+        print("You are up to date! :)")
 
 
 def update():
-    # delete current elements files
-    os.system("rm -rvf /usr/share/elements")
-    # replace them with the latest and greatest
-    os.system("git clone https://github.com/NitrogenLinux/elements.git")
-    os.system("mv -v elements /usr/share/")
+    # backup current executable
+    os.system("mv -fv /etc/elements/lmt /etc/elements/lmt.bak")
+
+    # download the new executable
+    os.system("wget https://raw.githubusercontent.com/NitrogenLinux/elements/main/builds/lmt")
+    os.system("mv -fv lmt /etc/elements/lmt")
+
     # refresh repositories
-    refresh()   
-    print("Elements Update Complete!")
+    refresh()
+    print(Fore.GREEN + "Elements Update Complete!")
 
 
 def cfgregen():
-    print("Doing this will remove your old cc.cfg, are you sure?")
+    # Warning just in case
+    print("Doing this will remove your old cfg.py, and replace it with a fresh one, are you sure?")
 
+    # Create a Y/N prompt
     def prompt():
         x = str(input(Fore.GREEN + "Y" + Fore.WHITE + "/" + Fore.RED + "n" + ' ' + Fore.WHITE))
+        # Check if user wants to regen config
         if x in ['y']:
+            # If yes it will regenerate
             print("Regenerating Config...")
-            os.system("curl https://raw.githubusercontent.com/NitrogenLinux/elements/main/cc.cfg > "
-                      "/usr/share/elements/cc.cfg")
+            os.system("rm -rv /etc/elements/cfg.py")
+            os.system("curl https://raw.githubusercontent.com/NitrogenLinux/elements/main/cfg.py > "
+                      "/etc/elements/cfg.py")
         elif x in ['n']:
+            # If not it will exit
             sys.exit()
         else:
-            print(Fore.RED + '"' + x + '"' + " is not a valid command." + Fore.WHITE)
+            # If input meaning is unsure, throw an error at the user, they should figure it out
+            print(Fore.RED + '"' + x + '"' + " is not understood." + Fore.WHITE)
             prompt()
+
+    # Start the new prompt
     prompt()

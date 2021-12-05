@@ -4,10 +4,9 @@ from colorama import Fore
 
 
 def search_pkg():
-    searched_item = int(os.system("ls ~/.lmt-repo | grep " + install.pkg + " > /dev/null"))
-    if searched_item == 256:
-        print(Fore.RED + install.pkg + " not in current repo or not in repo. If you know this package is in the repo "
-                                       "then I would "
-                                       "recommend doing a lmt --refresh" + Fore.WHITE)
+    searched_item = int(os.system("ls /etc/elements/repos/nitrogen/ | grep " + install.pkg + " > /dev/null"))
+    if searched_item != 0:
+        print(Fore.RED + install.pkg + ' not found in Nitrogen Repository."' + Fore.WHITE)
     else:
-        print(install.pkg + " found.")
+        print(install.pkg + " found in Nitrogen repository.")
+        print("Do a " + '"lmt --add ' + install.pkg + '"' + " to install it.")
