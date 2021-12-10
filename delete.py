@@ -6,7 +6,7 @@ packages = pkgs.read()
 
 
 def delete_pkg():
-    protected = install.pkg in protect.protected_package
+    protected = install.pkg[0] in protect.protected_package
     # Check if deleting package is protected
     if protected is True:
         print(Fore.RED + "The package you are trying to remove is protected" + Fore.WHITE)

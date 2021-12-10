@@ -91,4 +91,3 @@ def man_command():
 
 def version():
     print("Elements " + ver)
-    

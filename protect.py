@@ -1,4 +1,4 @@
-# Protected Elements Packages
+# Protected Elements Packages # Aka Anti-Linus Measures
 protected_package = [
     # Kernel
     'linux',

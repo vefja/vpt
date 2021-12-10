@@ -1,13 +1,7 @@
-import delete
-import sys
-import time
+import delete, sys, time, os, urllib.request
 import install as add
 import update as upd
-import search as sr
 import helppage as help
-import os
-import urllib.request
-import ntgcfg
 from colorama import Fore
 
 # Get arguments
@@ -24,7 +18,7 @@ DebugArgs = arguments[3:]
 # P.O.S.T., is the Power On Self Test of Elements
 # It tests for every important feature
 # But to make debugging easy on other platforms there is a '--debug' flag at the end
-# '--debug' can also remove the need for the 'cfg.py' file, which is not recommended
+# '--debug' can also remove the need for the 'cfg.py' file
 
 # Elements Debug
 # --------------
@@ -36,9 +30,10 @@ DebugArgs = arguments[3:]
 
 if DebugArgs:
     DebugArgs = DebugArgs[0]
-    print(DebugArgs)
     if DebugArgs not in '--debug':
         print(Fore.RED + 'Debug Arguments Invalid')
+        sys.exit()
+
 else:
     ok_post = True
     print(Fore.GREEN + "Post Enabled" + Fore.WHITE)
@@ -57,7 +52,10 @@ if ok_post is True:
     print(Fore.GREEN + "Pkgs Loaded")
 
 pkg_num = len(packages.split())
-ntgcfg.Debug = DebugArgs
+
+if DebugArgs:
+    if DebugArgs in '--debug':
+        ok_post = False
 
 # Check for Configuration File
 if ok_post is True:
@@ -65,6 +63,7 @@ if ok_post is True:
 elif ok_post is False:
     cfg_load = 0
     print(Fore.RED + "Running in Debug Mode. Configuration File will not be used.")
+    add.disable = True
 else:
     cfg_load = 1
 # In case config file isn't found(command returns an answer other an 0), throw an error
@@ -82,13 +81,10 @@ else:
     if cfg.repos_enabled is True:
         print(Fore.GREEN + "Setting Repositories", end='')
         sys.stdout.flush()
-        time.sleep(0.3)
         print(".", end='')
         sys.stdout.flush()
-        time.sleep(0.2)
         print(".", end='')
         sys.stdout.flush()
-        time.sleep(0.3)
         print("." + Fore.WHITE)
         repos = cfg.repos
         add.ntgrepo = repos[0]
@@ -115,16 +111,12 @@ if not arguments:
     print(Fore.RED + "Usage: 'lmt --option package'")
     help.helppage()
     sys.exit()
-else:
-    if not pkg_args:
-        print(Fore.RED + "You must specify what package to add/remove.")
-        sys.exit()
 
 # take first argument, used for commands
 args = arguments[0]
 
 
-# Check for internet, since --update could do massive damage without internet
+# Check for internet, since --update could remove Elements without internet
 def connect():
     try:
         # Try find internet
@@ -152,24 +144,29 @@ if connect():
         help.version()
     elif args in ['--list', '-l']:
         print("Packages", " (", pkg_num, ") ", ": ", packages)
-    elif args in ['--configure', '--cfg']:
-        os.system("clear")
-        ntgcfg.tui_interface()
-    elif args in ['--gui']:
-        print(Fore.RED + "Running Elements in Debug Mode." + Fore.WHITE)
-        import lmtgui
-
-        lmtgui.exit()
     else:
-
         # Make pkg str in install.py to be the second argument taken before
-        add.pkg = pkg_args[0]
         if args in ['--add', '-a']:
+            if not pkg_args:
+                print(Fore.RED + "You must specify what package to add/remove.")
+                sys.exit()
             add.install_pkg()
         elif args in ['--del', '-d', '--delete']:
+            if not pkg_args:
+                print(Fore.RED + "You must specify what package to add/remove.")
+                sys.exit()
+            add.pkg = pkg_args
             delete.delete_pkg()
         elif args in ['--sr', '--search', '-s']:
-            sr.search_pkg()
+            if not pkg_args:
+                print(Fore.RED + "You must specify what package to add/remove.")
+                sys.exit()
+            os.system("/etc/elements/binaries/search " + pkg_args[0])
+            print("Error code: ", end='')
+            print(os.system("/etc/elements/binaries/search " + pkg_args[0] + " > /dev/null"))
+
+        else:
+            print(Fore.RED + "Unknown command.")
 
 else:
     # Average Internet Error
