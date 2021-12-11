@@ -1,1 +1,0 @@
-# TODO: Implement an actual GUI for Elements, not promised in 0.0.6-Next But will come until 0.0.8-Next
