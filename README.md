@@ -1,2 +1,2 @@
 # Elements
-A reasonably quick package manager coded in Python, GoLang and Shell.
+A reasonably fast package manager coded in Python, GoLang and Shell.
