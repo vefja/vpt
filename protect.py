@@ -5,6 +5,7 @@ protected_package = [
     'linux-lts',
     'linux-zen',
     'linux-xanmod',
+    'linux-xm',
     # Original Desktop
     'gnome',
     'gnome-desktop',
