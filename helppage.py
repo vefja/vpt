@@ -1,6 +1,6 @@
 from colorama import Fore
 
-ver = "Zero-Nine"
+ver = "-Next"
 
 args = ''
 
