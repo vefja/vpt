@@ -10,6 +10,8 @@ arguments = sys.argv
 packages = ''
 ok_post = False
 
+print(arguments)
+
 # look for P.O.S.T. disabling arguments
 DebugArgs = arguments[3:]
 
@@ -119,7 +121,7 @@ args = arguments[0]
 # Check for internet, since --update could remove Elements without internet
 def connect():
     try:
-        # Try find internet
+        # Try to find internet
         urllib.request.urlopen('https://google.com')
         return True
     except:
@@ -150,12 +152,13 @@ if connect():
             if not pkg_args:
                 print(Fore.RED + "You must specify what package to add/remove.")
                 sys.exit()
+            add.pkg_args = pkg_args
             add.install_pkg()
         elif args in ['--del', '-d', '--delete']:
             if not pkg_args:
                 print(Fore.RED + "You must specify what package to add/remove.")
                 sys.exit()
-            add.pkg = pkg_args
+            add.pkg_args = pkg_args
             delete.delete_pkg()
         elif args in ['--sr', '--search', '-s']:
             if not pkg_args:
