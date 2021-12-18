@@ -48,10 +48,7 @@ def delete_pkg():
             x = str(input(Fore.GREEN + "Y" + Fore.WHITE + "/" + Fore.RED + "n" + ' ' + Fore.WHITE))
             if x in ['y']:
                 print("Removing: " + install.pkg_args)
-                os.system("cd /usr/src/" + install.pkg_args)
-                os.system("make uninstall")
-                os.system("rm -v /usr/bin/" + install.pkg_args)
-                os.system("rm -rf -v /usr/src/" + install.pkg_args)
+                os.system("bash /etc/elements/repos/" + inrepo + '/' + install.pkg_args + "/delete")
                 afterrmpkgs = packages.replace(install.pkg_args, "")
                 open('/etc/elements/pkgs', 'w').close()
                 pkgs = open('/etc/elements/pkgs', 'a')
