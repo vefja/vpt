@@ -28,7 +28,6 @@ def install_pkg():
         print(Fore.RED + "Debug: Enabled" + Fore.WHITE)
         print(Fore.RED + "Using Elements in debug mode is not recommended." + Fore.WHITE)
     else:
-        print(pkg_args)
         # Package Check 2
         global invalid_pkg
         pkgvalid = os.system("ls /etc/elements/repos/" + ntgrepo + "/ | grep " + pkg_args + " " + "> /dev/null")

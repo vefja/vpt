@@ -9,9 +9,6 @@ arguments = sys.argv
 # Declare some things before
 packages = ''
 ok_post = False
-
-print(arguments)
-
 # look for P.O.S.T. disabling arguments
 DebugArgs = arguments[3:]
 
@@ -88,10 +85,7 @@ else:
         print(".", end='')
         sys.stdout.flush()
         print("." + Fore.WHITE)
-        repos = cfg.repos
-        add.ntgrepo = repos[0]
-        add.customrepo1 = repos[1]
-        add.customrepo2 = repos[2]
+        repos = 'Im bored rn, like its Christmas Eve, and im coding in python :/'
 
     print(Fore.GREEN + "Success: Config File Loaded" + Fore.WHITE)
 
