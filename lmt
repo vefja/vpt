@@ -1,2 +1,0 @@
-#!/bin/bash
-/etc/elements/lmt $1 $2 $3

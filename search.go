@@ -67,6 +67,8 @@ func main() {
 	}
 	if success {
 	} else {
-		log.Fatal()
+		fmt.Print(searched)
+		fmt.Print(" not in local repository.")
+		fmt.Println()
 	}
 }
