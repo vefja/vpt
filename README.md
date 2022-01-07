@@ -15,7 +15,7 @@ $ wget https://raw.githubusercontent.com/NitrogenLinux/elements/next/lmt
 ```
 Move your new shiny experimental version to /usr/bin
 ```
-$ sudo mv lmt /usr/bin 
+$ sudo mv lmt /usr/bin/
 ```
 Enjoy the newest Elements has to offer!
 
@@ -30,6 +30,6 @@ $ wget https://raw.githubusercontent.com/NitrogenLinux/elements/stable/lmt
 ```
 Move stable version to /usr/bin
 ```
-$ sudo mv lmt /usr/bin
+$ sudo mv lmt /usr/bin/
 ```
 You can now use Elements Stable again!
