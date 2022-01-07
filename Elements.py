@@ -3,6 +3,8 @@ import sys
 from colorama import Fore
 
 ver = "one α"
+## TODO: change next to stable when Elements One gets released
+branch = "next"
 
 def search_repository():
     local_repo_contains = os.system("/etc/elements/search-repo " + sys.argv[2])
@@ -17,7 +19,6 @@ def chk_root():
         sys.exit()
 
 
-## TODO: Add a command not found prompt
 if not sys.argv[1:]:
     print("Elements " + ver)
     print("Usage: lmt command")
@@ -45,9 +46,6 @@ if sys.argv[1] in "install":
     elif prompt in ["n", "no"]:
         print("Exit.")
         sys.exit()
-    else:
-        print("unsure")
-        ## TODO: Add Prompt Unsure error
 
 elif sys.argv[1] in "remove":
     chk_root()
@@ -60,16 +58,12 @@ elif sys.argv[1] in "remove":
         ## TODO: Add removal scripts
     elif prompt in ["n", "no"]:
         sys.exit()
-    else:
-        print()
-        ## TODO: Add Prompt Unsure error
 
 elif sys.argv[1] in "search":
     os.system("/etc/elements/search " + sys.argv[2])
     search_repository()
 elif sys.argv[1] in "update":
-    print()
-    ## TODO: Add updating system
+    os.system("wget https://raw.githubusercontent.com/NitrogenLinux/elements/" + branch + "/Elements.py")
 elif sys.argv[1] in "show":
     print()
     ## TODO: Add Show Package Mechanism
