@@ -6,11 +6,17 @@ IMPORTANT: If you decide to use Elements Next(not recommended), your system work
 First of all, this is not recommended, Next is very experimental and usually has a ton of changes
 anyways, if you want to continue...
 Remove your current elements installation
-``` $ sudo rm /usr/bin/lmt ```
+``` 
+$ sudo rm /usr/bin/lmt 
+```
 Get the Experimental version
-``` $ wget https://raw.githubusercontent.com/NitrogenLinux/elements/next/lmt ```
+``` 
+$ wget https://raw.githubusercontent.com/NitrogenLinux/elements/next/lmt
+```
 Move your new shiny experimental version to /usr/bin
-``` $ sudo mv lmt /usr/bin ```
+```
+$ sudo mv lmt /usr/bin 
+```
 Enjoy the newest Elements has to offer!
 
 ## To Downgrade Back to stable:
