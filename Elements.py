@@ -8,6 +8,7 @@ branch = "next"
 
 package_install = 2
 
+
 def search_repository():
     global local_repo_contains
     global pacman
@@ -19,7 +20,7 @@ def search_repository():
     success = local_repo_contains
     if local_repo_contains != 0:
         ##if os.system("pacman -Ss " + " ".join(sys.argv[package_install]) + " >> /dev/null") != 0:
-         ##   sys.exit()
+        ##   sys.exit()
         pacman = True
     else:
         local_repo_contains = os.popen("/etc/elements/search-repo " + sys.argv[package_install]).read()
@@ -33,7 +34,8 @@ def chk_root():
         print("Root is required to run " + sys.argv[1])
         sys.exit()
 
-# Why this variable never work when i actually compile it?
+
+
 if len(sys.argv[1:]) == 0:
     print("Elements " + ver)
     print("Usage: lmt command")
@@ -144,16 +146,15 @@ else:
         yn = str(input("Y/n "))
         if yn in ["y", "yes"]:
             sys.argv = " ".join(sys.argv[2:])
-            os.system("python3.9 Elements.py install " + sys.argv)
+            os.system("lmt install " + sys.argv)
     elif fuzz.ratio(sys.argv[1], "remove") > 50:
         print("Do you mean remove?")
         yn = str(input("Y/n "))
         if yn in ["y", "yes"]:
             sys.argv = " ".join(sys.argv[2:])
-            os.system("python3.9 Elements.py remove " + sys.argv)
+            os.system("lmt remove " + sys.argv)
     elif fuzz.ratio(sys.argv[1], "update") > 50:
         print("Do you mean update?")
         yn = str(input("Y/n "))
         if yn in ["y", "yes"]:
-            os.system("python3.9 Elements.py update")
-
+            os.system("lmt update")
