@@ -5,11 +5,14 @@ ver = "one α"
 ## TODO: change next to stable when Elements One gets released
 branch = "next"
 
+
 def search_repository():
     global local_repo_contains
     global pacman
+    global success
     pacman = False
     local_repo_contains = os.system("/etc/elements/search-repo " + sys.argv[2] + " >> /dev/null")
+    success = local_repo_contains
     if local_repo_contains != 0:
         if os.system("pacman -Ss " + " ".join(sys.argv[2:]) + " >> /dev/null") != 0:
             sys.exit()
@@ -20,13 +23,13 @@ def search_repository():
         local_repo_contains = local_repo_contains.replace('\n', ' ')
         local_repo_contains = local_repo_contains.split(' ', 1)
         local_repo_contains = local_repo_contains[0]
-        print(local_repo_contains)
 
 
 def chk_root():
     if os.geteuid() != 0:
         print("Root is required to run " + sys.argv[1])
         sys.exit()
+
 
 if not sys.argv[1:]:
     print("Elements " + ver)
@@ -40,7 +43,9 @@ if not sys.argv[1:]:
     sys.exit()
 else:
     if sys.argv[1] in ["install", "remove", "search", "show"]:
-        if not sys.argv[2:]:
+        if sys.argv[2:]:
+            pass
+        else:
             print("Must Specify what package to " + sys.argv[1] + ".")
             sys.exit()
 
@@ -49,7 +54,7 @@ if sys.argv[1] in "install":
     search_repository()
     print("The following packages will be installed:")
     print(" " + ", ".join(sys.argv[2:]))
-    prompt = input(
+    prompt: str = input(
         "Do you wish to continue? " + "[" + Fore.GREEN + "Y" + Fore.RESET + "/" + Fore.RED + "n" + Fore.RESET + "] ")
     if prompt in ["y", "yes", ""]:
         if pacman is True:
@@ -57,7 +62,6 @@ if sys.argv[1] in "install":
             sys.exit()
         os.system("/etc/elements/repos/" + local_repo_contains + "/" + sys.argv[2] + "/build")
 
-        ## TODO: Add install scripts
     elif prompt in ["n", "no"]:
         print("Exit.")
         sys.exit()
@@ -75,10 +79,16 @@ elif sys.argv[1] in "remove":
         sys.exit()
 
 elif sys.argv[1] in "search":
-    if os.system("/etc/elements/search-repo " + sys.argv[2] + " >> /dev/null") == 0:
-        print(sys.argv[2] + " found.")
+    search_repository()
+    if success != 0:
+        print("Couldn't find " + sys.argv[2])
     else:
-        print("Could not find " + sys.argv[2])
+        searched = os.popen("/etc/elements/search " + sys.argv[2]).read()
+        searched = searched.replace('\n', ' ')
+        searched = searched.split(' ', 1)
+        searched = searched[0]
+        print(searched + " found.")
+
 
 elif sys.argv[1] in "update":
     os.system("wget https://raw.githubusercontent.com/NitrogenLinux/elements/" + branch + "/Elements.py")
