@@ -1,4 +1,5 @@
 import os, sys
+from fuzzywuzzy import fuzz
 from colorama import Fore
 
 ver = "One Beta"
@@ -51,7 +52,7 @@ else:
             print("Must Specify what package to " + sys.argv[1] + ".")
             sys.exit()
 
-if sys.argv[1] in "install":
+if sys.argv[1] == "install":
     chk_root()
     search_repository()
     if len(sys.argv[2:]) != len(set(sys.argv[2:])):
@@ -76,7 +77,7 @@ if sys.argv[1] in "install":
         print("Exit.")
         sys.exit()
 
-elif sys.argv[1] in "remove":
+elif sys.argv[1] == "remove":
     chk_root()
     search_repository()
     if len(sys.argv[2:]) != len(set(sys.argv[2:])):
@@ -103,7 +104,7 @@ elif sys.argv[1] in "remove":
         sys.exit()
 
 
-elif sys.argv[1] in "search":
+elif sys.argv[1] == "search":
     search_repository()
     if success != 0:
         print("Couldn't find " + sys.argv[2])
@@ -115,7 +116,7 @@ elif sys.argv[1] in "search":
         print(searched + " found.")
 
 
-elif sys.argv[1] in "update":
+elif sys.argv[1] == "update":
     chk_root()
     os.system("wget https://raw.githubusercontent.com/NitrogenLinux/elements/" + branch + "/lmt")
     os.system("mv lmt /usr/bin/")
@@ -129,7 +130,7 @@ elif sys.argv[1] in "update":
 ## TODO: Complete update script
 ## TODO: Make update script use the binary file instead of the source code
 
-elif sys.argv[1] in "show":
+elif sys.argv[1] == "show":
     if os.system("./search " + sys.argv[2] + " >> /dev/null") != 0:
         print(sys.argv[2] + " not found.")
     else:
@@ -138,3 +139,21 @@ elif sys.argv[1] in "show":
         print("Repository: " + local_repo_contains)
 else:
     print(sys.argv[1] + ": Command Not found.")
+    if fuzz.ratio(sys.argv[1], "install") > 50:
+        print("Do you mean install?")
+        yn = str(input("Y/n "))
+        if yn in ["y", "yes"]:
+            sys.argv = " ".join(sys.argv[2:])
+            os.system("python3.9 Elements.py install " + sys.argv)
+    elif fuzz.ratio(sys.argv[1], "remove") > 50:
+        print("Do you mean remove?")
+        yn = str(input("Y/n "))
+        if yn in ["y", "yes"]:
+            sys.argv = " ".join(sys.argv[2:])
+            os.system("python3.9 Elements.py remove " + sys.argv)
+    elif fuzz.ratio(sys.argv[1], "update") > 50:
+        print("Do you mean update?")
+        yn = str(input("Y/n "))
+        if yn in ["y", "yes"]:
+            os.system("python3.9 Elements.py update")
+
