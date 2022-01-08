@@ -1,7 +1,7 @@
 import os, sys
 from colorama import Fore
 
-ver = "one β"
+ver = "One Beta"
 ## TODO: change next to stable when Elements One gets released
 branch = "next"
 
@@ -32,8 +32,8 @@ def chk_root():
         print("Root is required to run " + sys.argv[1])
         sys.exit()
 
-
-if not sys.argv[1:]:
+# Why this variable never work when i actually compile it?
+if len(sys.argv[1:]) == 0:
     print("Elements " + ver)
     print("Usage: lmt command")
     print()
@@ -71,7 +71,6 @@ if sys.argv[1] in "install":
                 os.system("/etc/elements/repos/" + local_repo_contains + "/" + sys.argv[package_install] + "/build")
                 packages_to_install = packages_to_install - 1
                 package_install = package_install + 1
-                print(packages_to_install)
 
     elif prompt in ["n", "no"]:
         print("Exit.")
