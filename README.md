@@ -19,3 +19,5 @@ pyinstaller --onefile Elements.py
 chmod a+x dist/lmt
 sudo mv -v dist/lmt /usr/bin/
 ```
+# Contributing
+Contributions are and always will be welcome!
