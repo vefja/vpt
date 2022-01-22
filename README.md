@@ -11,8 +11,6 @@ move the binary to /usr/bin/ and make it runable
 sudo mv -v /path/to/lmt /usr/bin/
 sudo chmod a+x /usr/bin/lmt
 ```
-You can now use Elements
-
 Compiling it yourself:
 ```
 git clone https://github.com/NitrogenLinux/elements.git
@@ -21,4 +19,3 @@ pyinstaller --onefile Elements.py
 chmod a+x dist/lmt
 sudo mv -v dist/lmt /usr/bin/
 ```
-You can now enjoy your freshly compiled Elements
