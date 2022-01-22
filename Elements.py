@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import os, sys
 from fuzzywuzzy import fuzz
 from colorama import Fore
@@ -5,6 +6,10 @@ from colorama import Fore
 ver = "One Beta"
 ## TODO: change next to stable when Elements One gets released
 branch = "next"
+if branch == "next":
+    bin = "python $HOME/Code/elements/Elements.py"
+else:
+    bin = "lmt"
 
 package_install = 2
 
@@ -19,14 +24,17 @@ def search_repository():
     local_repo_contains = os.system("/etc/elements/search-repo " + sys.argv[package_install] + " >> /dev/null")
     success = local_repo_contains
     if local_repo_contains != 0:
-        ##if os.system("pacman -Ss " + " ".join(sys.argv[package_install]) + " >> /dev/null") != 0:
-        ##   sys.exit()
+        if os.system("pacman -Ss " + " ".join(sys.argv[package_install]) + " >> /dev/null") != 0:
+           sys.exit()
         pacman = True
     else:
         local_repo_contains = os.popen("/etc/elements/search-repo " + sys.argv[package_install]).read()
         local_repo_contains = local_repo_contains.replace('\n', ' ')
         local_repo_contains = local_repo_contains.split(' ', 1)
         local_repo_contains = local_repo_contains[0]
+        if os.system("ls /etc/elements/repos/" + local_repo_contains + '/' + sys.argv[package_install] + " >> /dev/null") != 0:
+            print(sys.argv[package_install] + " does not exist.")
+            sys.exit()
 
 
 def chk_root():
@@ -146,15 +154,15 @@ else:
         yn = str(input("Y/n "))
         if yn in ["y", "yes"]:
             sys.argv = " ".join(sys.argv[2:])
-            os.system("lmt install " + sys.argv)
+            os.system(bin + " install " + sys.argv)
     elif fuzz.ratio(sys.argv[1], "remove") > 50:
         print("Do you mean remove?")
         yn = str(input("Y/n "))
         if yn in ["y", "yes"]:
             sys.argv = " ".join(sys.argv[2:])
-            os.system("lmt remove " + sys.argv)
+            os.system(bin + " remove " + sys.argv)
     elif fuzz.ratio(sys.argv[1], "update") > 50:
         print("Do you mean update?")
         yn = str(input("Y/n "))
         if yn in ["y", "yes"]:
-            os.system("lmt update")
+            os.system(bin + " update")
