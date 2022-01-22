@@ -3,7 +3,7 @@ import os, sys
 from fuzzywuzzy import fuzz
 from colorama import Fore
 
-ver = "One Beta"
+ver = "One RC2"
 ## TODO: change next to stable when Elements One gets released
 branch = "next"
 if branch == "next":
@@ -75,6 +75,7 @@ if sys.argv[1] == "install":
         packages_to_install = len(sys.argv[2:])
         while packages_to_install > 0:
             search_repository()
+            print(Fore.GREEN + "Installing package " + Fore.YELLOW + str(package_install - 1) + Fore.WHITE + "/" + Fore.YELLOW + str(len(sys.argv[2:])) + Fore.WHITE)
             if pacman is True:
                 os.system("pacman -S --noconfirm " + sys.argv[package_install])
                 packages_to_install = packages_to_install - 1
@@ -100,6 +101,7 @@ elif sys.argv[1] == "remove":
         packages_to_install = len(sys.argv[2:])
         while packages_to_install > 0:
             search_repository()
+            print(Fore.GREEN + "Removing package " + Fore.YELLOW + str(package_install - 1) + Fore.WHITE + "/" + Fore.YELLOW + str(len(sys.argv[2:])) + Fore.WHITE)
             if pacman is True:
                 os.system("pacman -Rns --noconfirm " + sys.argv[package_install])
                 packages_to_install = packages_to_install - 1
@@ -107,7 +109,6 @@ elif sys.argv[1] == "remove":
                 os.system("/etc/elements/repos/" + local_repo_contains + "/" + sys.argv[package_install] + "/remove")
                 packages_to_install = packages_to_install - 1
                 package_install = package_install + 1
-                print(packages_to_install)
 
     elif prompt in ["n", "no"]:
         print("Exit.")
@@ -137,8 +138,6 @@ elif sys.argv[1] == "update":
     os.system("chmod +x /etc/elements/{search,search-repo}")
     os.system("chmod +x /usr/bin/*")
     os.system("pacman -Syu")
-## TODO: Complete update script
-## TODO: Make update script use the binary file instead of the source code
 
 elif sys.argv[1] == "show":
     if os.system("./search " + sys.argv[2] + " >> /dev/null") != 0:
