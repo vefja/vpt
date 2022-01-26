@@ -3,6 +3,9 @@ Elements is a package manager coded in Python and GoLang. And as packages it has
 
 ## Installing Elements
 
+### Dependencies
+In order to compile and use Elements, the following packages are needed `python 3.10`(may work with 3.9 but it is untested), `pip`, `colorama`, `fuzzywuzzy`, `python-Levenshtein`, `go`.
+
 ### Precompiled binary
 This is actually the method that Elements itself uses
 ```
