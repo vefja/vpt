@@ -36,3 +36,6 @@ sudo mv search-repo /etc/elements/
 ```
 
 And now you successfully compiled Elements yourself!
+
+## Contributing to Elements
+Everyone is welcome to contributing to Elements
