@@ -3,9 +3,9 @@ import os, sys
 from fuzzywuzzy import fuzz
 from colorama import Fore
 
-ver = "One RC2"
-## TODO: change next to stable when Elements One gets released
-branch = "next"
+ver = "One"
+branch = "stable"
+
 if branch == "next":
     bin = "python $HOME/Code/elements/Elements.py"
 else:
