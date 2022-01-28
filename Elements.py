@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.10
 import os, sys
 from fuzzywuzzy import fuzz
 from colorama import Fore
@@ -13,6 +13,17 @@ else:
 
 package_install = 2
 
+def protect_packages():
+    if sys.argv[package_install] in ["gnome", "linux-lts", "pacman", "elements"]:
+        print(Fore.RED + "You are trying to remove a protected package." + Fore.RESET)
+        print("Doing so may damage your system.")
+        print('Type "I understand the possible consequences of this action." if you wish to continue.')
+        removal_ok = input()
+        if removal_ok == "I understand the possible consequences of this action.":
+            pass
+        else:
+            print(Fore.RED + "Error: Could not remove package." + Fore.RESET)
+            sys.exit()
 
 def search_repository():
     global local_repo_contains
@@ -90,6 +101,7 @@ if sys.argv[1] == "install":
 
 elif sys.argv[1] == "remove":
     chk_root()
+    protect_packages()
     search_repository()
     if len(sys.argv[2:]) != len(set(sys.argv[2:])):
         sys.argv[2:] = list(dict.fromkeys(sys.argv[2:]))
