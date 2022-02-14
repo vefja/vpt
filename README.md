@@ -18,27 +18,5 @@ sudo elements-search/* /etc/elements
 rm -rf elements-search
 sudo chmod a+x /etc/elements/{search,search-repo}
 ```
-
-### Compile it yourself
-This is a bit tougher
-Use the instructions for the Precompiled binary and instead of downloading lmt do:
-```
-git clone https://github.com/NitrogenLinux/elements.git
-cd elements
-pyinstaller --onefile Elements.py
-sudo mv dist/Elements /usr/bin/lmt
-```
-And for Elements Search
-```
-git clone https://github.com/tekq/elements-search.git
-cd elements-search
-go build search.go
-go build search-repo.go
-sudo mv search /etc/elements/
-sudo mv search-repo /etc/elements/
-```
-
-And now you successfully compiled Elements yourself!
-
 ## Contributing to Elements
 Everyone is welcome to contributing to Elements
