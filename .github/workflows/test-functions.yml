@@ -34,7 +34,7 @@ jobs:
     - name: Prepare for Tests
       run: "sudo mkdir -p /etc/elements/repos"
     - name: Installing elements-search modules
-      run: "git clone https://github.com/tekq/elements-search.git; mv -vf elements-search/search-repo /etc/elements/; mv -vf elements-search/search /etc/elements/; chmod +x /etc/elements/{search,search-repo}; rm -rvf elements-search"
+      run: "git clone https://github.com/tekq/elements-search.git; sudo mv -vf elements-search/search-repo /etc/elements/; sudo mv -vf elements-search/search /etc/elements/; sudo chmod +x /etc/elements/{search,search-repo}; sudo rm -rvf elements-search"
     - name: Testing installing
       run: "sudo python lmt.py install neofetch"
     - name: Testing removing
