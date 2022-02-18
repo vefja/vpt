@@ -139,7 +139,7 @@ elif sys.argv[1] == "search":
 
 elif sys.argv[1] == "update":
     chk_root()
-    os.system("wget https://raw.githubusercontent.com/NitrogenLinux/elements/" + branch + "/lmt lmt.src")
+    os.system("curl https://raw.githubusercontent.com/NitrogenLinux/elements/" + branch + "/lmt > lmt.src")
     os.system("mv lmt.src /usr/bin/")
     os.system("git clone https://github.com/tekq/elements-search.git")
     os.system("mv -vf elements-search/search-repo /etc/elements/")
