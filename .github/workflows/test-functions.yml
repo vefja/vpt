@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Test Install
+name: Test Functions
 
 on:
   push:
@@ -31,5 +31,16 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test installing
+    - name: Prepare for Tests
+      run: "sudo mkdir -p /etc/elements/repos"
+    - name: Installing elements-search modules
+      run: "git clone https://github.com/tekq/elements-search.git; mv -vf elements-search/search-repo /etc/elements/; mv -vf elements-search/search /etc/elements/; chmod +x /etc/elements/{search,search-repo}; rm -rvf elements-search"
+    - name: Testing installing
       run: "sudo python lmt.py install neofetch"
+    - name: Testing removing
+      run: "sudo python lmt.py remove neofetch"
+    - name: Testing updating
+      run: "sudo python lmt.py update"
+    - name: Testing repo ref
+      run: "sudo python lmt.py refresh"
+      
