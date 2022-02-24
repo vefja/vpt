@@ -3,17 +3,10 @@ import os, sys
 from colorama import Fore
 
 ver = "One"
-branch = "stable"
-
-if branch == "next":
-    bin = "python $HOME/Code/elements/Elements.py"
-else:
-    bin = "lmt"
-
-package_install = 2
+pkg_number = 2
 
 def protect_packages():
-    if sys.argv[package_install] in ["gnome", "linux-lts", "pacman", "elements"]:
+    if sys.argv[pkg_number] in ["gnome", "linux-lts", "pacman", "elements"]:
         print(Fore.RED + "You are trying to remove a protected package." + Fore.RESET)
         print("Doing so may damage your system.")
         print('Type "I understand the possible consequences of this action." if you wish to continue.')
@@ -21,29 +14,29 @@ def protect_packages():
         if removal_ok == "I understand the possible consequences of this action.":
             pass
         else:
-            print(Fore.RED + "Error: Could not remove package." + Fore.RESET)
+            print(Fore.RED + "Error: Could not remove package: Removing " + sys.argv[pkg_number] + " is forbidden." + Fore.RESET)
             sys.exit()
 
 def search_repository():
-    global local_repo_contains
-    global pacman
-    global success
-    global packages_to_install
-    global package_install
-    pacman = False
-    local_repo_contains = os.system("/etc/elements/search-repo " + sys.argv[package_install] + " >> /dev/null")
-    success = local_repo_contains
-    if local_repo_contains != 0:
-        if os.system("pacman -Ss " + " ".join(sys.argv[package_install]) + " >> /dev/null") != 0:
+    global in_repository
+    global pacman_use
+    global find_success
+    global pkgs_left
+    global pkg_number
+    pacman_use = False # declare pacman as false for the next package(can change)
+    in_repository = os.system("/etc/elements/search-repo " + sys.argv[pkg_number] + " >> /dev/null") # search for the package using search-repo
+    find_success = in_repository # define success
+    if in_repository != 0: # if package not found in the repository, use pacman
+        if os.system("pacman -Ss " + " ".join(sys.argv[pkg_number]) + " >> /dev/null") != 0: # search in the Arch repositories for the package
            sys.exit()
-        pacman = True
+        pacman_use = True
     else:
-        local_repo_contains = os.popen("/etc/elements/search-repo " + sys.argv[package_install]).read()
-        local_repo_contains = local_repo_contains.replace('\n', ' ')
-        local_repo_contains = local_repo_contains.split(' ', 1)
-        local_repo_contains = local_repo_contains[0]
-        if os.system("ls /etc/elements/repos/" + local_repo_contains + '/' + sys.argv[package_install] + " >> /dev/null") != 0:
-            print(sys.argv[package_install] + " does not exist.")
+        in_repository = os.popen("/etc/elements/search-repo " + sys.argv[pkg_number]).read() # if package is found in the Nitrogen repositories, find the path
+        in_repository = in_repository.replace('\n', ' ') # replace ln with nothing
+        in_repository = in_repository.split(' ', 1)
+        in_repository = in_repository[0]
+        if os.system("ls /etc/elements/repos/" + in_repository + '/' + sys.argv[pkg_number] + " >> /dev/null") != 0:
+            print(sys.argv[pkg_number] + " does not exist.") # package not found error
             sys.exit()
 
 
@@ -74,25 +67,25 @@ else:
             sys.exit()
 
 if sys.argv[1] == "install":
-    chk_root()
-    search_repository()
+    chk_root() # check for root permissions
+    search_repository() # search if package is available
     if len(sys.argv[2:]) != len(set(sys.argv[2:])):
         sys.argv[2:] = list(dict.fromkeys(sys.argv[2:]))
     print("The following packages will be installed:")
     print(" " + ", ".join(sys.argv[2:]))
     prompt = str(input("Do you wish to continue? " + "[" + Fore.GREEN + "Y" + Fore.RESET + "/" + Fore.RED + "n" + Fore.RESET + "] "))
     if prompt in ["y", "yes", ""]:
-        packages_to_install = len(sys.argv[2:])
-        while packages_to_install > 0:
+        pkgs_left = len(sys.argv[2:])
+        while pkgs_left > 0:
             search_repository()
-            print(Fore.GREEN + "Installing package " + Fore.YELLOW + str(package_install - 1) + Fore.WHITE + "/" + Fore.YELLOW + str(len(sys.argv[2:])) + Fore.WHITE)
-            if pacman is True:
-                os.system("pacman -S --noconfirm " + sys.argv[package_install])
-                packages_to_install = packages_to_install - 1
+            print(Fore.GREEN + "Installing package " + Fore.YELLOW + str(pkg_number - 1) + Fore.WHITE + "/" + Fore.YELLOW + str(len(sys.argv[2:])) + Fore.WHITE)
+            if pacman_use is True:
+                os.system("pacman -S --noconfirm " + sys.argv[pkg_number])
+                pkgs_left = pkgs_left - 1
             else:
-                os.system("/etc/elements/repos/" + local_repo_contains + "/" + sys.argv[package_install] + "/build")
-                packages_to_install = packages_to_install - 1
-                package_install = package_install + 1
+                os.system("/etc/elements/repos/" + in_repository + "/" + sys.argv[pkg_number] + "/build")
+                pkgs_left = pkgs_left - 1
+                pkg_number = pkg_number + 1
 
     elif prompt in ["n", "no"]:
         print("Exit.")
@@ -108,17 +101,17 @@ elif sys.argv[1] == "remove":
     print(" " + ", ".join(sys.argv[2:]))
     prompt = str(input("Do you wish to continue? " + "[" + Fore.GREEN + "Y" + Fore.RESET + "/" + Fore.RED + "n" + Fore.RESET + "] "))
     if prompt in ["y", "yes", ""]:
-        packages_to_install = len(sys.argv[2:])
-        while packages_to_install > 0:
+        pkgs_left = len(sys.argv[2:])
+        while pkgs_left > 0:
             search_repository()
-            print(Fore.GREEN + "Removing package " + Fore.YELLOW + str(package_install - 1) + Fore.WHITE + "/" + Fore.YELLOW + str(len(sys.argv[2:])) + Fore.WHITE)
-            if pacman is True:
-                os.system("pacman -Rns --noconfirm " + sys.argv[package_install])
-                packages_to_install = packages_to_install - 1
+            print(Fore.GREEN + "Removing package " + Fore.YELLOW + str(pkg_number - 1) + Fore.WHITE + "/" + Fore.YELLOW + str(len(sys.argv[2:])) + Fore.WHITE)
+            if pacman_use is True:
+                os.system("pacman -Rns --noconfirm " + sys.argv[pkg_number])
+                pkgs_left = pkgs_left - 1
             else:
-                os.system("/etc/elements/repos/" + local_repo_contains + "/" + sys.argv[package_install] + "/remove")
-                packages_to_install = packages_to_install - 1
-                package_install = package_install + 1
+                os.system("/etc/elements/repos/" + in_repository + "/" + sys.argv[pkg_number] + "/remove")
+                pkgs_left = pkgs_left - 1
+                pkg_number = pkg_number + 1
 
     elif prompt in ["n", "no"]:
         print("Exit.")
@@ -127,19 +120,19 @@ elif sys.argv[1] == "remove":
 
 elif sys.argv[1] == "search":
     search_repository()
-    if success != 0:
+    if find_success != 0:
         print("Couldn't find " + sys.argv[2])
     else:
-        searched = os.popen("/etc/elements/search " + sys.argv[2]).read()
-        searched = searched.replace('\n', ' ')
-        searched = searched.split(' ', 1)
-        searched = searched[0]
-        print(searched + " found.")
+        searched_item = os.popen("/etc/elements/search " + sys.argv[2]).read()
+        searched_item = searched_item.replace('\n', ' ')
+        searched_item = searched_item.split(' ', 1)
+        searched_item = searched_item[0]
+        print(searched_item + " found.")
 
 
 elif sys.argv[1] == "update":
     chk_root()
-    os.system("curl https://raw.githubusercontent.com/NitrogenLinux/elements/" + branch + "/lmt > lmt.src")
+    os.system("curl https://raw.githubusercontent.com/NitrogenLinux/elements/stable/lmt > lmt.src")
     os.system("mv lmt.src /usr/bin/")
     os.system("git clone https://github.com/tekq/elements-search.git")
     os.system("mv -vf elements-search/search-repo /etc/elements/")
@@ -159,6 +152,6 @@ elif sys.argv[1] == "show":
     else:
         search_repository()
         print("Package: " + sys.argv[2])
-        print("Repository: " + local_repo_contains)
+        print("Repository: " + in_repository)
 else:
     print(sys.argv[1] + ": Command Not found.")
