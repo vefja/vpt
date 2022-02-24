@@ -32,7 +32,7 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Prepare for Tests
-      run: "sudo mkdir -p /etc/elements/repos; sudo curl -Lo /usr/bin/pacman https://github.com/icy/pacapt/raw/ng/pacapt; sudo chmod 755 /usr/bin/pacman"
+      run: "sudo mkdir -p /etc/elements/repos; sudo curl -Lo /usr/bin/pacman https://github.com/icy/pacapt/raw/ng/pacapt; sudo chmod 755 /usr/bin/pacman; sudo apt update"
     - name: Installing elements-search modules
       run: "git clone https://github.com/tekq/elements-search.git; sudo mv -vf elements-search/search-repo /etc/elements/; sudo mv -vf elements-search/search /etc/elements/; sudo chmod +x /etc/elements/{search,search-repo}; sudo rm -rvf elements-search"
     - name: Testing installing
