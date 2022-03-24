@@ -11,7 +11,7 @@ def protect_packages():
         print(Fore.RED + "You are trying to remove a protected package." + Fore.RESET)
         print("Doing so may damage your system.")
         print('Type "I understand the possible consequences of this action." if you wish to continue.')
-        removal_ok = input()
+        removal_ok = input(": ")
         if removal_ok == "I understand the possible consequences of this action.":
             pass
         else:
@@ -32,6 +32,7 @@ def search_repository():
         if find.status_code != 200: # search in the Void repositories for the package
            sys.exit()
         use_xbps = True
+        in_repository = "Void Linux"
     else:
         in_repository = os.popen("/etc/elements/search-repo " + sys.argv[pkg_number]).read() # if package is found in the Nitrogen repositories, find the path
         in_repository = in_repository.replace('\n', ' ') # replace ln with nothing
@@ -122,8 +123,8 @@ elif sys.argv[1] == "remove":
 
 elif sys.argv[1] == "search":
     search_repository()
-    if find_success != 0:
-        print("Couldn't find " + sys.argv[2])
+    if os.system("/etc/elements/search " + sys.argv[2] + " >> /dev/null") != 0 and use_xbps == False:
+        print(sys.argv[2] + " not found.")
     else:
         searched_item = os.popen("/etc/elements/search " + sys.argv[2]).read()
         searched_item = searched_item.replace('\n', ' ')
@@ -140,19 +141,26 @@ elif sys.argv[1] == "update":
     os.system("mv -vf elements-search/search-repo /etc/elements/")
     os.system("mv -vf elements-search/search /etc/elements/")
     os.system("rm -rvf elements-search")
-    os.system("chmod +x /etc/elements/{search,search-repo}")
-    os.system("chmod +x /usr/bin/*")
+    os.system("chmod a+x /etc/elements/search")
+    os.system("chmod a+x /etc/elements/search-repo")
+    os.system("chmod a+x /usr/bin/*")
+    os.system("chmod -R a+x /etc/elements/repos/")
     os.system("xbps-install -Suy")
 
 elif sys.argv[1] == "refresh":
     chk_root()
-    os.system("git clone https://github.com/NitrogenLinux/elements-repo.git /etc/elements/repos/nitrogen")
+    if os.path.exists("/etc/elements/repos/Nitrogen"):
+        os.system("cd /etc/elements/repos/Nitrogen/")
+        os.system("git pull; cd - >> /dev/null")
+    else:
+        os.system("git clone https://github.com/NitrogenLinux/elements-repo /etc/elements/repos/Nitrogen")
+    os.system("chmod -R a+x /etc/elements/repos/")
 
 elif sys.argv[1] == "show":
-    if os.system("./search " + sys.argv[2] + " >> /dev/null") != 0:
+    search_repository()
+    if os.system("/etc/elements/search " + sys.argv[2] + " >> /dev/null") != 0 and use_xbps == False:
         print(sys.argv[2] + " not found.")
     else:
-        search_repository()
         print("Package: " + sys.argv[2])
         print("Repository: " + in_repository)
 else:
