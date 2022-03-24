@@ -1,12 +1,13 @@
 #!/usr/bin/python
 import os, sys
 from colorama import Fore
+import requests
 
 ver = "One"
 pkg_number = 2
 
 def protect_packages():
-    if sys.argv[pkg_number] in ["gnome", "linux-lts", "pacman", "elements"]:
+    if sys.argv[pkg_number] in ["gnome", "linux-lts", "xbps", "elements"]:
         print(Fore.RED + "You are trying to remove a protected package." + Fore.RESET)
         print("Doing so may damage your system.")
         print('Type "I understand the possible consequences of this action." if you wish to continue.')
@@ -19,17 +20,18 @@ def protect_packages():
 
 def search_repository():
     global in_repository
-    global pacman_use
+    global use_xbps
     global find_success
     global pkgs_left
     global pkg_number
-    pacman_use = False # declare pacman as false for the next package(can change)
+    use_xbps = False # declare xbps as false for the next package(can change)
     in_repository = os.system("/etc/elements/search-repo " + sys.argv[pkg_number] + " >> /dev/null") # search for the package using search-repo
     find_success = in_repository # define success
-    if in_repository != 0: # if package not found in the repository, use pacman
-        if os.system("pacman -Ss " + " ".join(sys.argv[pkg_number]) + " >> /dev/null") != 0: # search in the Arch repositories for the package
+    if in_repository != 0: # if package not found in the repository, use xbps
+        find = requests.get('https://github.com/void-linux/void-packages/tree/master/srcpkgs/' + sys.argv[pkg_number])
+        if find.status_code != 200: # search in the Void repositories for the package
            sys.exit()
-        pacman_use = True
+        use_xbps = True
     else:
         in_repository = os.popen("/etc/elements/search-repo " + sys.argv[pkg_number]).read() # if package is found in the Nitrogen repositories, find the path
         in_repository = in_repository.replace('\n', ' ') # replace ln with nothing
@@ -79,8 +81,8 @@ if sys.argv[1] == "install":
         while pkgs_left > 0:
             search_repository()
             print(Fore.GREEN + "Installing package " + Fore.YELLOW + str(pkg_number - 1) + Fore.WHITE + "/" + Fore.YELLOW + str(len(sys.argv[2:])) + Fore.WHITE)
-            if pacman_use is True:
-                os.system("pacman -S --noconfirm " + sys.argv[pkg_number])
+            if use_xbps is True:
+                os.system("xbps-install -Sy " + sys.argv[pkg_number])
                 pkgs_left = pkgs_left - 1
             else:
                 os.system("/etc/elements/repos/" + in_repository + "/" + sys.argv[pkg_number] + "/build")
@@ -105,8 +107,8 @@ elif sys.argv[1] == "remove":
         while pkgs_left > 0:
             search_repository()
             print(Fore.GREEN + "Removing package " + Fore.YELLOW + str(pkg_number - 1) + Fore.WHITE + "/" + Fore.YELLOW + str(len(sys.argv[2:])) + Fore.WHITE)
-            if pacman_use is True:
-                os.system("pacman -Rns --noconfirm " + sys.argv[pkg_number])
+            if use_xbps is True:
+                os.system("xbps-remove -y " + sys.argv[pkg_number])
                 pkgs_left = pkgs_left - 1
             else:
                 os.system("/etc/elements/repos/" + in_repository + "/" + sys.argv[pkg_number] + "/remove")
@@ -140,7 +142,7 @@ elif sys.argv[1] == "update":
     os.system("rm -rvf elements-search")
     os.system("chmod +x /etc/elements/{search,search-repo}")
     os.system("chmod +x /usr/bin/*")
-    os.system("pacman -Syu")
+    os.system("xbps-install -Suy")
 
 elif sys.argv[1] == "refresh":
     chk_root()
