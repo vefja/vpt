@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os, sys
 from colorama import Fore
 import requests
