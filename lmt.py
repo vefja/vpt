@@ -10,9 +10,9 @@ if os.path.exists("/etc/elements/.1st-time-setup"):
 else:
     print("Preparing 1st time setup")
     os.system("sudo pip3 install colorama requests")
-    os.system("xbps-install git wget curl make cmake")
-    print("Have fun!")
+    os.system("xbps-install -Sy git wget curl make cmake")
     os.system("sudo touch /etc/elements/.1st-time-setup")
+    print("Continuing previous command")
     from colorama import Fore
     import requests
     
