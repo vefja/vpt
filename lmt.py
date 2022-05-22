@@ -1,19 +1,21 @@
 #!/usr/bin/python3
 import os, sys
-from colorama import Fore
-import requests
 
 ver = "One"
 pkg_number = 2
 
 if os.path.exists("/etc/elements/.1st-time-setup"):
-    pass
+    from colorama import Fore
+    import requests
 else:
     print("Preparing 1st time setup")
     os.system("sudo pip3 install colorama requests")
+    os.system("xbps-install git wget curl make cmake")
     print("Have fun!")
     os.system("sudo touch /etc/elements/.1st-time-setup")
-
+    from colorama import Fore
+    import requests
+    
 def protect_packages():
     if sys.argv[pkg_number] in ["gnome", "linux-lts", "xbps", "elements"]:
         print(Fore.RED + "You are trying to remove a protected package." + Fore.RESET)
