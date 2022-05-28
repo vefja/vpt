@@ -133,7 +133,7 @@ elif sys.argv[1] == "remove":
 
 elif sys.argv[1] == "search":
     search_repository()
-    if os.system("/etc/elements/search " + sys.argv[2] + " >> /dev/null") != 0 and use_xbps == False:
+    if os.system("/etc/elements/search " + sys.argv[2] + " >> /dev/null") != 0 and use_xbps is False:
         print(sys.argv[2] + " not found.")
     else:
         searched_item = os.popen("/etc/elements/search " + sys.argv[2]).read()
@@ -168,7 +168,7 @@ elif sys.argv[1] == "refresh":
 
 elif sys.argv[1] == "show":
     search_repository()
-    if os.system("/etc/elements/search " + sys.argv[2] + " >> /dev/null") != 0 and use_xbps == False:
+    if os.system("/etc/elements/search " + sys.argv[2] + " >> /dev/null") != 0 and use_xbps is False:
         print(sys.argv[2] + " not found.")
     else:
         print("Package: " + sys.argv[2])
