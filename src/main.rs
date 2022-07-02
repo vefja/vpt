@@ -8,7 +8,7 @@ use words_count::WordsCount;
 
 fn main() {
     let mut args: Vec<String> = env::args().collect(); // take args in a vector
-    let clone_args: Vec<String> = env::args().collect(); // have an imutable version of args
+    let clone_args: Vec<String> = env::args().collect(); // have an immutable version of args
 
     if args.len() >= 2 {
         // detect action
@@ -61,19 +61,19 @@ fn main() {
                 }
 
                 if action.to_lowercase().eq("install") {
-                    println!("Installing {0:?}", args);
+                    println!("Installing {0:?}", args.join(" "));
                 } else if action.to_lowercase().eq("remove") {
-                    println!("Removing: {0:?}", args);
+                    println!("Removing: {0:?}", args.join(" "));
                 } else if action.to_lowercase().eq("update") {
-                    println!("Updating: {0:?}", args);
+                    println!("Updating: {0:?}", args.join(" "));
                 }
             } else {
                 if action.to_lowercase().eq("install") {
-                    println!("Installing {0} packages: {1:?}", args.len(), args);
+                    println!("Installing {0} packages: {1:?}", args.len(), args.join(" "));
                 } else if action.to_lowercase().eq("remove") {
-                    println!("Removing {0} packages: {1:?}", args.len(), args);
+                    println!("Removing {0} packages: {1:?}", args.len(), args.join(" "));
                 } else if action.to_lowercase().eq("update") {
-                    println!("Updating {0} packages: {1:?}", args.len(), args);
+                    println!("Updating {0} packages: {1:?}", args.len(), args.join(" "));
                 }
             }
 
@@ -251,7 +251,7 @@ fn main() {
                     .output()
                     .expect("Couldn't remove repository.");
 
-                println!("Reclone Repository 3/5");
+                println!("Re-clone Repository 3/5");
                 let p3_log = Command::new("git")
                     .arg("clone")
                     .arg("https://github.com/NitrogenLinux/elements-repo.git") // Nitrogen Linux's main repository
@@ -281,7 +281,7 @@ fn main() {
                 let mut pkg_db = String::new();
                 pkg_db_path.read_to_string(&mut pkg_db).unwrap();
 
-                let mut packages_to_update = words_count::count_separately(&pkg_db);
+                let packages_to_update = words_count::count_separately(&pkg_db);
 
                 let mut pkg_left = packages_to_update.len();
                 let mut pkgs_done = 0;
@@ -339,7 +339,8 @@ fn main() {
                                     + &pkg_db_vec[pkgs_done]
                                     + "/build",
                             )
-                            .output();
+                            .output()
+                            .expect("Couldn't execute bash");
                     }
 
                     pkg_left = pkg_left - 1;
