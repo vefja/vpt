@@ -35,10 +35,11 @@ fn main() {
             println!("  install: Install a package");
             println!("  remove: Remove a package");
             println!("  update: Update all packages");
+            println!("  search: Search for a package");
             println!("  help: Show this help message");
             exit(0);
         } else {
-            println!("No argument called '{0}' found.", action);
+            println!("No command called '{0}' found.", action);
             exit(1);
         }
 
@@ -52,7 +53,8 @@ fn main() {
                     // search
                     if Path::new(&("/etc/elements/repos/Nitrogen/".to_owned() + &args[0])).exists()
                     {
-                        println!("Found {}", args[0]);
+                        println!("Package: '{}' was found in Nitrogen Linux's repositories.", args[0]);
+                        println!("Use 'lmt install {}' to install it.", args[0]);
                     } else {
                         println!("No package called '{0}' found.", args[0]);
                         exit(1);
@@ -77,20 +79,25 @@ fn main() {
                 }
             }
 
-            print!("Continue? [y/n] "); // ask for confirmation
-            io::stdout().flush().unwrap(); // flush stdout
-            let mut input = String::new(); // create a string to store input
+            if ["install", "remove", "update"].contains(&&**&action.to_lowercase()) {
+                print!("Continue? [y/n] "); // ask for confirmation
+                io::stdout().flush().unwrap(); // flush stdout
+                let mut input = String::new(); // create a string to store input
 
-            io::stdin().read_line(&mut input).unwrap(); // take input
+                io::stdin().read_line(&mut input).unwrap(); // take input
 
-            if input.to_lowercase().contains('y') { // if input in lowercase contains the letter "y", therefore y/Y/yes/yep/yeah/yea_m8 should theoretically work
-                 // pass
-            } else if input.len() == 1 { // if input is empty
-                 // pass
+                if input.to_lowercase().contains('y') { // if input in lowercase contains the letter "y", therefore y/Y/yes/yep/yeah/yea_m8 should theoretically work
+                    // pass
+                } else if input.len() == 1 { // if input is empty
+                    // pass
+                } else {
+                    // if input is not empty, nor yes
+                    println!("Aborting."); // print abort message
+                    exit(0); // exit
+                }
             } else {
-                // if input is not empty, nor yes
-                println!("Aborting."); // print abort message
-                exit(0); // exit
+                println!("Couldn't execute: '{}': Unknown error.", action); // I actually have no idea what causes this error ngl
+                exit(0);
             }
 
             let mut package_to_install = 0; // create a variable to store the number of packages to install
