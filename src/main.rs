@@ -53,7 +53,10 @@ fn main() {
                     // search
                     if Path::new(&("/etc/elements/repos/Nitrogen/".to_owned() + &args[0])).exists()
                     {
-                        println!("Package: '{}' was found in Nitrogen Linux's repositories.", args[0]);
+                        println!(
+                            "Package: '{}' was found in Nitrogen Linux's repositories.",
+                            args[0]
+                        );
                         println!("Use 'lmt install {}' to install it.", args[0]);
                     } else {
                         println!("No package called '{0}' found.", args[0]);
@@ -87,9 +90,9 @@ fn main() {
                 io::stdin().read_line(&mut input).unwrap(); // take input
 
                 if input.to_lowercase().contains('y') { // if input in lowercase contains the letter "y", therefore y/Y/yes/yep/yeah/yea_m8 should theoretically work
-                    // pass
+                     // pass
                 } else if input.len() == 1 { // if input is empty
-                    // pass
+                     // pass
                 } else {
                     // if input is not empty, nor yes
                     println!("Aborting."); // print abort message
