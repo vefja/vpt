@@ -390,6 +390,7 @@ fn main() {
         println!("  install: Install a package");
         println!("  remove: Remove a package");
         println!("  update: Update all packages");
+        println!("  search: Search for a package");
         println!("  help: Show this help message");
         exit(1);
     }
