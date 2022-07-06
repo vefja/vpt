@@ -5,7 +5,6 @@ use std::path::Path;
 use std::process::{exit, Command};
 use std::{env, io};
 
-
 fn main() {
     let mut args: Vec<String> = env::args().collect(); // take args in a vector
     let clone_args: Vec<String> = env::args().collect(); // have an immutable version of args
@@ -21,8 +20,12 @@ fn main() {
             exit(128);
         }
 
-        if action.to_lowercase().eq("install") || action.to_lowercase().eq("remove") || action.to_lowercase().eq("update") || action.to_lowercase().eq("search") { // detect action
-            // pass if action is install, remove, update or search
+        if action.to_lowercase().eq("install")
+            || action.to_lowercase().eq("remove")
+            || action.to_lowercase().eq("update")
+            || action.to_lowercase().eq("search")
+        { // detect action
+             // pass if action is install, remove, update or search
         } else if action.to_lowercase().eq("help") {
             println!("usage: lmt <action> <package>");
             println!("List of Main Commands:");
@@ -127,7 +130,8 @@ fn main() {
                                 args.len()
                             );
                             let updated_pkg_db = updated_pkg_db + &*args[package_to_install] + " ";
-                            write_to_package_db(updated_pkg_db).expect("Couldn't write to package database.");
+                            write_to_package_db(updated_pkg_db)
+                                .expect("Couldn't write to package database.");
                         }
 
                         let build_log = Command::new("bash")
@@ -142,7 +146,8 @@ fn main() {
                             let updated_pkg_db =
                                 updated_pkg_db.replace(&args[package_to_install], "");
 
-                            write_to_package_db(updated_pkg_db).expect("Couldn't write to package database.");
+                            write_to_package_db(updated_pkg_db)
+                                .expect("Couldn't write to package database.");
                         } else {
                             println!(
                                 "Cannot remove {}: Package not installed.",
@@ -312,7 +317,7 @@ fn main() {
                         + pkg_db_vec[packages_done]
                         + "/version",
                 )
-                    .unwrap();
+                .unwrap();
 
                 let mut version = String::new();
                 version_path.read_to_string(&mut version).unwrap();
@@ -322,7 +327,7 @@ fn main() {
                         + pkg_db_vec[packages_done]
                         + "/version",
                 )
-                    .unwrap();
+                .unwrap();
                 let mut version_old = String::new();
                 version_old_path.read_to_string(&mut version_old).unwrap();
 
