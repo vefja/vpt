@@ -262,18 +262,28 @@ fn main() {
                 .arg("/etc/elements/repos/Nitrogen") // path to clone to
                 .output()
                 .expect("Couldn't clone the repository.");
+
+            let pkg_perm_Log = Command::new("chmod")
+                .arg("a+x")
+                .arg("-R")
+                .arg("/etc/elements/repos/Nitrogen") // path to chmod
+                .output()
+                .expect("Couldn't set permissions for the repository.");
+
             println!("Reinstall elements 4/5");
             let p4_log = Command::new("curl")
                 .arg("-s")
                 .arg("https://api.github.com/repos/NitrogenLinux/Elements/releases/latest | grep 'browser_download_url.*lmt' | cut -d : -f 2,3 | tr -d \" | wget -qi -")// get the latest release
                 .output()
                 .expect("Couldn't execute curl");
+
             let mv_log = Command::new("mv")
                 .arg("-v") // verbose for logging
                 .arg("lmt")
                 .arg("/usr/bin/lmt") // move the file to /usr/bin/lmt
                 .output()
                 .expect("Couldn't move the file.");
+
             let chmod_log = Command::new("chmod")
                 .arg("a+x")
                 .arg("-v") // verbose for logging
@@ -355,6 +365,7 @@ fn main() {
             update_log_file.write_all(&p1_log.stdout).unwrap();
             update_log_file.write_all(&p2_log.stdout).unwrap();
             update_log_file.write_all(&p3_log.stdout).unwrap();
+            update_log_file.write_all(&pkg_perm_Log.stdout).unwrap();
             update_log_file.write_all(&p4_log.stdout).unwrap();
             update_log_file.write_all(&mv_log.stdout).unwrap();
             update_log_file.write_all(&chmod_log.stdout).unwrap();
