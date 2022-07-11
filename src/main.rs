@@ -46,7 +46,7 @@ fn main() {
                     exit(512);
                 }
 
-                if args[i].contains(".") || args[i].contains("/") { // Cannot believe the things I have to do to make elements not install nothing
+                if args[i].contains('.') || args[i].contains('/') { // Cannot believe the things I have to do to make elements not install nothing
                     println!("Error: Package name cannot contain '{}'", args[i]);
                     exit(512);
 
