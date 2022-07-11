@@ -46,8 +46,8 @@ fn main() {
                     exit(512);
                 }
 
-                if args[i].contains(".") { // Cannot believe the things I have to do to make elements not install nothing
-                    println!("Error: Package name cannot contain '.'");
+                if args[i].contains(".") || args[i].contains("/") { // Cannot believe the things I have to do to make elements not install nothing
+                    println!("Error: Package name cannot contain '{}'", args[i]);
                     exit(512);
 
                 }
@@ -80,22 +80,22 @@ fn main() {
                     exit(0);
                 }
 
-                if action.to_lowercase().eq("install") {
+                if action.to_lowercase().eq("install") || action.to_lowercase().eq("in") {
                     println!("Installing {0:?}", args.join(" "));
-                } else if action.to_lowercase().eq("remove") {
+                } else if action.to_lowercase().eq("remove") || action.to_lowercase().eq("rm") {
                     println!("Removing: {0:?}", args.join(" "));
-                } else if action.to_lowercase().eq("update") {
+                } else if action.to_lowercase().eq("update") || action.to_lowercase().eq("up") {
                     println!("Updating: {0:?}", args.join(" "));
                 }
-            } else if action.to_lowercase().eq("install") {
+            } else if action.to_lowercase().eq("install") || action.to_lowercase().eq("in") {
                 println!("Installing {0} packages: {1:?}", args.len(), args.join(" "));
-            } else if action.to_lowercase().eq("remove") {
+            } else if action.to_lowercase().eq("remove") || action.to_lowercase().eq("rm") {
                 println!("Removing {0} packages: {1:?}", args.len(), args.join(" "));
-            } else if action.to_lowercase().eq("update") {
+            } else if action.to_lowercase().eq("update") || action.to_lowercase().eq("up") {
                 println!("Updating {0} packages: {1:?}", args.len(), args.join(" "));
             }
 
-            if ["install", "remove", "update"].contains(&&*action.to_lowercase()) {
+            if ["install", "remove", "update", "in", "rm", "up"].contains(&&*action.to_lowercase()) {
                 print!("Continue? [y/n] "); // ask for confirmation
                 io::stdout().flush().unwrap(); // flush stdout
                 let mut input = String::new(); // create a string to store input
@@ -111,8 +111,8 @@ fn main() {
                 }
             } else { // In case of an error, No idea what triggers this error but it happens.
                 println!("Couldn't execute: '{}': Unknown error.", action);
-                println!("Do not report this error."); // don't report this error.
-                exit(420); // exit
+                println!("Do not report this error."); // just don't dare to report this error.
+                exit(512); // exit
             }
 
             let mut package_to_install = 0; // create a variable to store the number of packages to install
