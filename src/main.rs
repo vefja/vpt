@@ -35,10 +35,18 @@ fn main() {
         }
 
         if args.len() >= 3 {
-            if args[2].is_empty() {
-                println!("Error: Unknown error.");
-                exit(512);
+            for mut i in 2..args.len() {
+                if args[i].is_empty() {
+                    println!("Error: Unknown error.");
+                    exit(512);
+                }
+
+                if args[i].contains(" ") {
+                    println!("Error: Package name cannot be empty.");
+                    exit(512);
+                }
             }
+
 
             if !getuid().to_string().eq("0") {
                 println!("You must be root to execute command: '{}'", args[1]);
