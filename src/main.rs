@@ -13,19 +13,13 @@ fn main() {
         // detect action
         let action = &clone_args[1];
 
-        if getuid().to_string().eq("0") {
-            // pass
-        } else {
-            println!("You must be root to execute command: '{}'", args[1]);
-            exit(128);
-        }
 
         if action.to_lowercase().eq("install")
             || action.to_lowercase().eq("remove")
             || action.to_lowercase().eq("update")
             || action.to_lowercase().eq("search")
         { // detect action
-             // pass if action is install, remove, update or search
+            // pass if action is install, remove, update or search
         } else if action.to_lowercase().eq("help") {
             println!("usage: lmt <action> <package>");
             println!("List of Main Commands:");
@@ -41,19 +35,29 @@ fn main() {
         }
 
         if args.len() >= 3 {
+            if args[2].is_empty() {
+                println!("Error: Unknown error.");
+                exit(512);
+            }
+
+            if !getuid().to_string().eq("0") {
+                println!("You must be root to execute command: '{}'", args[1]);
+                exit(128);
+            }
+
             // detect if package is specified and install
             args.remove(0); // remove exec name
             args.remove(0); // remove argument
 
             if args.len() == 1 {
-                if action.to_lowercase().eq("search") {
-                    // search
+                if action.to_lowercase().eq("search") { // search
                     if Path::new(&("/etc/elements/repos/Nitrogen/".to_owned() + &args[0])).exists()
                     {
                         println!(
                             "Package: '{}' was found in Nitrogen Linux's repositories.",
                             args[0]
                         );
+
                         println!("Use 'lmt install {}' to install it.", args[0]);
                     } else {
                         println!("No package called '{0}' found.", args[0]);
@@ -91,9 +95,10 @@ fn main() {
                     println!("Aborting."); // print abort message
                     exit(0); // exit
                 }
-            } else {
-                println!("Couldn't execute: '{}': Unknown error.", action); // I actually have no idea what causes this error ngl
-                exit(0);
+            } else { // In case of an error, No idea what triggers this error but it happens.
+                println!("Couldn't execute: '{}': Unknown error.", action);
+                println!("Do not report this error."); // don't report this error.
+                exit(420); // exit
             }
 
             let mut package_to_install = 0; // create a variable to store the number of packages to install
@@ -263,7 +268,7 @@ fn main() {
                 .output()
                 .expect("Couldn't clone the repository.");
 
-            let pkg_perm_Log = Command::new("chmod")
+            let pkg_perm_log = Command::new("chmod")
                 .arg("a+x")
                 .arg("-R")
                 .arg("/etc/elements/repos/Nitrogen") // path to chmod
@@ -327,7 +332,7 @@ fn main() {
                         + pkg_db_vec[packages_done]
                         + "/version",
                 )
-                .unwrap();
+                    .unwrap();
 
                 let mut version = String::new();
                 version_path.read_to_string(&mut version).unwrap();
@@ -337,7 +342,7 @@ fn main() {
                         + pkg_db_vec[packages_done]
                         + "/version",
                 )
-                .unwrap();
+                    .unwrap();
                 let mut version_old = String::new();
                 version_old_path.read_to_string(&mut version_old).unwrap();
 
@@ -365,7 +370,7 @@ fn main() {
             update_log_file.write_all(&p1_log.stdout).unwrap();
             update_log_file.write_all(&p2_log.stdout).unwrap();
             update_log_file.write_all(&p3_log.stdout).unwrap();
-            update_log_file.write_all(&pkg_perm_Log.stdout).unwrap();
+            update_log_file.write_all(&pkg_perm_log.stdout).unwrap();
             update_log_file.write_all(&p4_log.stdout).unwrap();
             update_log_file.write_all(&mv_log.stdout).unwrap();
             update_log_file.write_all(&chmod_log.stdout).unwrap();
