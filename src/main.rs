@@ -13,13 +13,12 @@ fn main() {
         // detect action
         let action = &clone_args[1];
 
-
         if action.to_lowercase().eq("install")
             || action.to_lowercase().eq("remove")
             || action.to_lowercase().eq("update")
             || action.to_lowercase().eq("search")
         { // detect action
-            // pass if action is install, remove, update or search
+             // pass if action is install, remove, update or search
         } else if action.to_lowercase().eq("help") {
             println!("usage: lmt <action> <package>");
             println!("List of Main Commands:");
@@ -47,7 +46,6 @@ fn main() {
                 }
             }
 
-
             if !getuid().to_string().eq("0") {
                 println!("You must be root to execute command: '{}'", args[1]);
                 exit(128);
@@ -58,7 +56,8 @@ fn main() {
             args.remove(0); // remove argument
 
             if args.len() == 1 {
-                if action.to_lowercase().eq("search") { // search
+                if action.to_lowercase().eq("search") {
+                    // search
                     if Path::new(&("/etc/elements/repos/Nitrogen/".to_owned() + &args[0])).exists()
                     {
                         println!(
@@ -103,7 +102,8 @@ fn main() {
                     println!("Aborting."); // print abort message
                     exit(0); // exit
                 }
-            } else { // In case of an error, No idea what triggers this error but it happens.
+            } else {
+                // In case of an error, No idea what triggers this error but it happens.
                 println!("Couldn't execute: '{}': Unknown error.", action);
                 println!("Do not report this error."); // don't report this error.
                 exit(420); // exit
@@ -340,7 +340,7 @@ fn main() {
                         + pkg_db_vec[packages_done]
                         + "/version",
                 )
-                    .unwrap();
+                .unwrap();
 
                 let mut version = String::new();
                 version_path.read_to_string(&mut version).unwrap();
@@ -350,7 +350,7 @@ fn main() {
                         + pkg_db_vec[packages_done]
                         + "/version",
                 )
-                    .unwrap();
+                .unwrap();
                 let mut version_old = String::new();
                 version_old_path.read_to_string(&mut version_old).unwrap();
 
