@@ -35,13 +35,13 @@ fn main() {
         }
 
         if args.len() >= 3 {
-            for mut i in 2..args.len() {
+            for i in 2..args.len() {
                 if args[i].is_empty() { // Throw error if "" is passed as argument
                     println!("Error: Unknown error.");
                     exit(512);
                 }
 
-                if args[i].contains(" ") { // Throw error if package name contains space
+                if args[i].contains(' ') { // Throw error if package name contains space
                     println!("Error: Package name cannot be empty.");
                     exit(512);
                 }
