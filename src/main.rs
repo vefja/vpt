@@ -3,9 +3,13 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 use std::process::{exit, Command};
-use std::{env, io};
+use std::{env, io, str};
 
 fn main() {
+    let use_snapshots = check_option("snapshots");
+
+    // TODO: add snapshots to Elements
+
     let mut args: Vec<String> = env::args().collect(); // take args in a vector
     let clone_args: Vec<String> = env::args().collect(); // have an immutable version of args
 
@@ -49,7 +53,6 @@ fn main() {
                 if args[i].contains('.') || args[i].contains('/') { // Cannot believe the things I have to do to make elements not install nothing
                     println!("Error: Package name cannot contain '{}'", args[i]);
                     exit(512);
-
                 }
             }
 
@@ -432,4 +435,21 @@ fn write_to_package_db(package: String) -> io::Result<()> {
     let mut input_buffer = String::new();
     input.read_to_string(&mut input_buffer)?;
     Ok(())
+}
+
+fn check_option(option: &str) -> bool {
+    let mut output = Command::new("bash")
+        .arg("/etc/elements/tools/find_opt.sh")// run find_opt.sh tool
+        .arg(option)// add option to script
+        .output()// take output of find_opt.sh
+        .expect("Couldn't execute find_opt.sh"); // error
+
+    let mut output_buffer = String::new(); // create buffer for output
+
+    output_buffer.push_str(match str::from_utf8(&output.stdout) {
+        Ok(val) => val,
+        Err(_) => panic!("got non UTF-8 data from git"),
+    }); // push output to buffer
+    
+    return output_buffer.contains("true");
 }
