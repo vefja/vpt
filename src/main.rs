@@ -129,7 +129,7 @@ fn main() {
             while package_to_install < args.len() {
                 if !check_option("remove_protected")
                     && ["elements", "gnome-core", "gnome", "linux", "xbps"]
-                    .contains(&&*args[package_to_install])
+                        .contains(&&*args[package_to_install])
                 {
                     println!(
                         "Cannot remove {}: Package is required by the system.",
@@ -360,7 +360,7 @@ fn main() {
                         + pkg_db_vec[packages_done]
                         + "/version",
                 )
-                    .unwrap();
+                .unwrap();
 
                 let mut version = String::new();
                 version_path.read_to_string(&mut version).unwrap();
@@ -370,7 +370,7 @@ fn main() {
                         + pkg_db_vec[packages_done]
                         + "/version",
                 )
-                    .unwrap();
+                .unwrap();
                 let mut version_old = String::new();
                 version_old_path.read_to_string(&mut version_old).unwrap();
 
@@ -469,7 +469,7 @@ fn check_option(option: &str) -> bool {
 
     return output_buffer.contains("true");
 }
-    
+
 fn take_snapshot(snapshot_type: &str, snapshot_reason: &str) {
     // TODO: test this, i have no idea if it works
     let reason = snapshot_type.to_lowercase() + " " + snapshot_reason;
