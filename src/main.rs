@@ -8,8 +8,6 @@ use std::{env, io, str};
 fn main() {
     let use_snapshots = check_option("snapshots");
 
-    // TODO: add snapshots to Elements
-
     let mut args: Vec<String> = env::args().collect(); // take args in a vector
     let clone_args: Vec<String> = env::args().collect(); // have an immutable version of args
 
@@ -21,8 +19,11 @@ fn main() {
             || action.to_lowercase().eq("remove")
             || action.to_lowercase().eq("update")
             || action.to_lowercase().eq("search")
-        { // detect action
-             // pass if action is install, remove, update or search
+        {
+            // detect action
+            if use_snapshots {
+                take_snapshot("pre", &clone_args[1]);
+            }
         } else if action.to_lowercase().eq("help") {
             println!("usage: lmt <action> <package>");
             println!("List of Main Commands:");
@@ -126,7 +127,8 @@ fn main() {
             let mut package_to_install = 0; // create a variable to store the number of packages to install
 
             while package_to_install < args.len() {
-                if ["elements", "gnome-core", "gnome", "linux", "xbps"]
+                if !check_option("remove_protected")
+                    && ["elements", "gnome-core", "gnome", "linux", "xbps"]
                     .contains(&&*args[package_to_install])
                 {
                     println!(
@@ -255,6 +257,10 @@ fn main() {
                     exit(0);
                 }
             }
+
+            if use_snapshots {
+                take_snapshot("post", action);
+            }
         } else if action.to_lowercase().eq("update") {
             println!("Updating Void packages 1/5");
             let p1_log = Command::new("xbps-install")
@@ -354,7 +360,7 @@ fn main() {
                         + pkg_db_vec[packages_done]
                         + "/version",
                 )
-                .unwrap();
+                    .unwrap();
 
                 let mut version = String::new();
                 version_path.read_to_string(&mut version).unwrap();
@@ -364,7 +370,7 @@ fn main() {
                         + pkg_db_vec[packages_done]
                         + "/version",
                 )
-                .unwrap();
+                    .unwrap();
                 let mut version_old = String::new();
                 version_old_path.read_to_string(&mut version_old).unwrap();
 
@@ -413,6 +419,11 @@ fn main() {
             println!(
                 "Update complete. A restart may be needed to use new libraries and/or kernels."
             );
+
+            if use_snapshots {
+                take_snapshot("post", "system upgrade");
+            }
+
             exit(0);
         } else {
             println!("No package specified to {0}.", action.to_lowercase());
@@ -443,7 +454,7 @@ fn write_to_package_db(package: String) -> io::Result<()> {
 }
 
 fn check_option(option: &str) -> bool {
-    let mut output = Command::new("bash")
+    let output = Command::new("bash")
         .arg("/etc/elements/tools/find_opt.sh") // run find_opt.sh tool
         .arg(option) // add option to script
         .output() // take output of find_opt.sh
@@ -457,4 +468,17 @@ fn check_option(option: &str) -> bool {
     }); // push output to buffer
 
     return output_buffer.contains("true");
+}
+    
+fn take_snapshot(snapshot_type: &str, snapshot_reason: &str) {
+    // TODO: test this, i have no idea if it works
+    let reason = snapshot_type.to_lowercase() + " " + snapshot_reason;
+    Command::new("snapper")
+        .arg("-c")
+        .arg("root")
+        .arg("create")
+        .arg("--description")
+        .arg(reason)
+        .output()
+        .expect("Couldn't take snapshot");
 }
