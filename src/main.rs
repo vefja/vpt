@@ -467,7 +467,7 @@ fn check_option(option: &str) -> bool {
         Err(_) => panic!("got non UTF-8 data from git"),
     }); // push output to buffer
 
-    return output_buffer.contains("true");
+    output_buffer.contains("true")
 }
 
 fn take_snapshot(snapshot_type: &str, snapshot_reason: &str) {
