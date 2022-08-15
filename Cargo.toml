@@ -8,5 +8,5 @@ license = "LICENSE"
 authors = ["tekq", "Nitrogen Project"]
 
 [dependencies]
-nix = "0.24.2"
+nix = "0.25.0"
 words-count = "0.1.3"
