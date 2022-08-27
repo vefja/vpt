@@ -53,7 +53,7 @@ fn main() {
                 }
 
                 if args[i].contains('.') || args[i].contains('/') {
-                     println!("Error: Package name cannot contain '{}'", args[i]);
+                    println!("Error: Package name cannot contain '{}'", args[i]);
                     exit(512);
                 }
             }
@@ -127,8 +127,16 @@ fn main() {
 
             while package_to_install < args.len() {
                 if !check_option("remove_protected")
-                    && ["elements", "gnome-core", "gnome", "linux", "xbps", "mutter", "kern"] // kern - nitrogen os's kernel
-                        .contains(&&*args[package_to_install])
+                    && [
+                        "elements",
+                        "gnome-core",
+                        "gnome",
+                        "linux",
+                        "xbps",
+                        "mutter",
+                        "kern",
+                    ] // kern - nitrogen os's kernel
+                    .contains(&&*args[package_to_install])
                 {
                     println!(
                         "Cannot remove {}: Package is required by the system.",
@@ -481,8 +489,9 @@ fn take_snapshot(snapshot_type: &str, snapshot_reason: &str) {
         .expect("Couldn't take snapshot.");
 }
 
-fn test_xbps() -> bool { // check if xbps can be found on the OS
-                         // (mostly for usage on NTG OS)
+fn test_xbps() -> bool {
+    // check if xbps can be found on the OS
+    // (mostly for usage on NTG OS)
     let xbps = true;
 
     return xbps;
