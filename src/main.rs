@@ -9,11 +9,11 @@ fn main() {
     let use_snapshots = check_option("snapshots");
 
     let mut args: Vec<String> = env::args().collect(); // take args in a vector
-    let clone_args: Vec<String> = env::args().collect(); // have an immutable version of args
+    let imut_args: Vec<String> = env::args().collect(); // have an immutable version of args
 
     if args.len() >= 2 {
         // detect action
-        let action = &clone_args[1];
+        let action = &imut_args[1];
 
         if action.to_lowercase().eq("install")
             || action.to_lowercase().eq("remove")
@@ -22,7 +22,7 @@ fn main() {
         {
             // detect action
             if use_snapshots {
-                take_snapshot("pre", &clone_args[1]);
+                take_snapshot("pre", &imut_args[1]);
             }
         } else if action.to_lowercase().eq("help") {
             println!("usage: lmt <action> <package>");
@@ -53,8 +53,7 @@ fn main() {
                 }
 
                 if args[i].contains('.') || args[i].contains('/') {
-                    // Cannot believe the things I have to do to make elements not install nothing
-                    println!("Error: Package name cannot contain '{}'", args[i]);
+                     println!("Error: Package name cannot contain '{}'", args[i]);
                     exit(512);
                 }
             }
@@ -66,7 +65,7 @@ fn main() {
             }
 
             // detect if package is specified and install
-            args.remove(0); // remove exec name
+            args.remove(0); // remove exec name(usually lmt)
             args.remove(0); // remove argument
 
             if args.len() == 1 {
@@ -128,7 +127,7 @@ fn main() {
 
             while package_to_install < args.len() {
                 if !check_option("remove_protected")
-                    && ["elements", "gnome-core", "gnome", "linux", "xbps"]
+                    && ["elements", "gnome-core", "gnome", "linux", "xbps", "mutter", "kern"] // kern - nitrogen os's kernel
                         .contains(&&*args[package_to_install])
                 {
                     println!(
@@ -471,7 +470,6 @@ fn check_option(option: &str) -> bool {
 }
 
 fn take_snapshot(snapshot_type: &str, snapshot_reason: &str) {
-    // TODO: test this, i have no idea if it works
     let reason = snapshot_type.to_lowercase() + " " + snapshot_reason;
     Command::new("snapper")
         .arg("-c")
@@ -480,5 +478,12 @@ fn take_snapshot(snapshot_type: &str, snapshot_reason: &str) {
         .arg("--description")
         .arg(reason)
         .output()
-        .expect("Couldn't take snapshot");
+        .expect("Couldn't take snapshot.");
+}
+
+fn test_xbps() -> bool { // check if xbps can be found on the OS
+                         // (mostly for usage on NTG OS)
+    let xbps = true;
+
+    return xbps;
 }
