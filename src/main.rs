@@ -2,7 +2,7 @@ use nix::unistd::getuid;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use std::process::{exit, Command};
+use std::process::{exit, Command, Output};
 use std::{env, io, str};
 
 fn main() {
@@ -226,6 +226,13 @@ fn main() {
                     let mut update_log_file = File::create("/tmp/update.log").unwrap();
                     update_log_file.write_all(&update_log.stdout).unwrap();
                 } else {
+                    if test_xbps() { // TODO: remove this if the other code doesn't work
+                       break;
+                    }
+
+                    // TODO: test if this works, since I have no clue why it actually
+                    // since this should theoretically do nothing
+
                     if action.eq("install") {
                         let build_log = Command::new("xbps-install")
                             .arg("-Sy")
@@ -269,13 +276,22 @@ fn main() {
                 take_snapshot("post", action);
             }
         } else if action.to_lowercase().eq("update") {
-            println!("Updating Void packages 1/5");
-            let p1_log = Command::new("xbps-install")
-                .arg("-Suy")
-                .output()
-                .expect("Couldn't execute xbps");
+            let p1_log = Command::new("/bin/sh").output().expect("How is this error even possible?");
 
-            println!("Removing old repository 2/5");
+            if test_xbps() {  // extra step for Nitrogen Linux
+                println!("Updating Void packages 1/5");
+                let p1_log = Command::new("xbps-install")
+                    .arg("-Suy")
+                    .output()
+                    .expect("Couldn't execute xbps");
+
+            }
+
+            if test_xbps() {  // Change numbering for non-xbps systems(so everything but Void)
+                println!("Removing old repository 2/5");
+            } else {
+                println!("Removing old repository 1/4")
+            }
             Command::new("rm") // remove unnecessary files
                 .arg("-rf")
                 .arg("/etc/elements/repos/.old_Nitrogen")
@@ -295,7 +311,11 @@ fn main() {
                 .output()
                 .expect("Couldn't remove repository.");
 
-            println!("Re-clone Repository 3/5");
+            if test_xbps() {
+                println!("Re-clone Repository 3/5");
+            } else {
+                println!("Re-clone Repository 2/4")
+            }
             let p3_log = Command::new("git")
                 .arg("clone")
                 .arg("https://github.com/NitrogenLinux/elements-repo.git") // Nitrogen Linux's main repository
@@ -310,7 +330,12 @@ fn main() {
                 .output()
                 .expect("Couldn't set permissions for the repository.");
 
-            println!("Reinstall elements 4/5");
+            if test_xbps() {
+                println!("Reinstall Elements 4/5");
+            } else {
+                println!("Reinstall Elements 3/4")
+            }
+
             let p4_log = Command::new("curl")
                 .arg("-s")
                 .arg("https://api.github.com/repos/NitrogenLinux/Elements/releases/latest | grep 'browser_download_url.*lmt' | cut -d : -f 2,3 | tr -d \" | wget -qi -")// get the latest release
@@ -340,7 +365,11 @@ fn main() {
             let mut pkg_left = packages_to_update.len();
             let mut packages_done = 0;
 
-            println!("Updating Rest of Packages 5/5");
+            if test_xbps() {
+                println!("Updating Rest of Packages 5/5");
+            } else {
+                println!("Updating Packages 4/4")
+            }
 
             let tmp = pkg_db.split(' ');
 
@@ -402,7 +431,11 @@ fn main() {
             }
 
             let mut update_log_file = File::create("/tmp/update.log").unwrap();
-            update_log_file.write_all(&p1_log.stdout).unwrap();
+
+            if test_xbps() { // add log for xbps
+                update_log_file.write_all(&p1_log.stdout).unwrap();
+            }
+
             update_log_file.write_all(&p2_log.stdout).unwrap();
             update_log_file.write_all(&p3_log.stdout).unwrap();
             update_log_file.write_all(&pkg_perm_log.stdout).unwrap();
@@ -492,7 +525,5 @@ fn take_snapshot(snapshot_type: &str, snapshot_reason: &str) {
 fn test_xbps() -> bool {
     // check if xbps can be found on the OS
     // (mostly for usage on NTG OS)
-    let xbps = true;
-
-    return xbps;
+    return Path::new("/usr/bin/xbps-install").exists();
 }
