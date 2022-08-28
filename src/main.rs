@@ -226,8 +226,9 @@ fn main() {
                     let mut update_log_file = File::create("/tmp/update.log").unwrap();
                     update_log_file.write_all(&update_log.stdout).unwrap();
                 } else {
-                    if test_xbps() { // TODO: remove this if the other code doesn't work
-                       break;
+                    if test_xbps() {
+                        // TODO: remove this if the other code doesn't work
+                        break;
                     }
 
                     // TODO: test if this works, since I have no clue why it actually
@@ -276,18 +277,21 @@ fn main() {
                 take_snapshot("post", action);
             }
         } else if action.to_lowercase().eq("update") {
-            let p1_log = Command::new("/bin/sh").output().expect("How is this error even possible?");
+            let p1_log = Command::new("/bin/sh")
+                .output()
+                .expect("How is this error even possible?");
 
-            if test_xbps() {  // extra step for Nitrogen Linux
+            if test_xbps() {
+                // extra step for Nitrogen Linux
                 println!("Updating Void packages 1/5");
                 let p1_log = Command::new("xbps-install")
                     .arg("-Suy")
                     .output()
                     .expect("Couldn't execute xbps");
-
             }
 
-            if test_xbps() {  // Change numbering for non-xbps systems(so everything but Void)
+            if test_xbps() {
+                // Change numbering for non-xbps systems(so everything but Void)
                 println!("Removing old repository 2/5");
             } else {
                 println!("Removing old repository 1/4")
@@ -432,7 +436,8 @@ fn main() {
 
             let mut update_log_file = File::create("/tmp/update.log").unwrap();
 
-            if test_xbps() { // add log for xbps
+            if test_xbps() {
+                // add log for xbps
                 update_log_file.write_all(&p1_log.stdout).unwrap();
             }
 
