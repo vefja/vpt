@@ -5,7 +5,8 @@ use std::path::Path;
 use std::process::{exit, Command};
 use std::{env, io, str};
 
-fn upgr_sys() { // system update
+fn upgr_sys() {
+    // system update
     let _p1_log = Command::new("/bin/sh")
         .output()
         .expect("How is this error even possible?");
@@ -125,11 +126,9 @@ fn upgr_sys() { // system update
 
     while pkg_left > 0 {
         let mut version_path = File::open(
-            "/etc/elements/repos/nitrogen/".to_owned()
-                + pkg_db_vec[packages_done]
-                + "/version",
+            "/etc/elements/repos/nitrogen/".to_owned() + pkg_db_vec[packages_done] + "/version",
         )
-            .unwrap();
+        .unwrap();
 
         let mut version = String::new();
         version_path.read_to_string(&mut version).unwrap();
@@ -139,7 +138,7 @@ fn upgr_sys() { // system update
                 + pkg_db_vec[packages_done]
                 + "/version",
         )
-            .unwrap();
+        .unwrap();
         let mut version_old = String::new();
         version_old_path.read_to_string(&mut version_old).unwrap();
 
@@ -190,14 +189,11 @@ fn upgr_sys() { // system update
         .output()
         .expect("Couldn't remove the old repository.");
 
-    println!(
-        "Update complete. A restart may be needed to use new libraries and/or kernels."
-    );
+    println!("Update complete. A restart may be needed to use new libraries and/or kernels.");
 
     if check_option("snapshots") {
         take_snapshot("post", "system upgrade");
     }
-
 
     exit(0);
 }
@@ -250,7 +246,6 @@ fn test_xbps() -> bool {
     return Path::new("/usr/bin/xbps-install").exists();
 }
 
-
 fn main() {
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
@@ -258,10 +253,15 @@ fn main() {
     if imut_args.len() >= 2 {
         let command = &imut_args[1].to_lowercase();
 
-        if command.eq("install") || command.eq("in")
-            || command.eq("remove") || command.eq("rm")
-            || command.eq("upgrade") || command.eq("up")
-            || command.eq("search") || command.eq("se") {
+        if command.eq("install")
+            || command.eq("in")
+            || command.eq("remove")
+            || command.eq("rm")
+            || command.eq("upgrade")
+            || command.eq("up")
+            || command.eq("search")
+            || command.eq("se")
+        {
             if check_option("snapshots") {
                 take_snapshot("pre", &imut_args[1]);
             }
@@ -284,7 +284,7 @@ fn main() {
             exit(256);
         }
 
-        if imut_args[1].eq("upgrade")&& imut_args.len() == 2 {
+        if imut_args[1].eq("upgrade") && imut_args.len() == 2 {
             upgr_sys(); // put system update in a func to clean up main
         }
 
@@ -296,30 +296,34 @@ fn main() {
                     exit(512);
                 }
 
-
                 if args_mod[i].contains(' ') {
                     // Throw error if package name contains space
                     println!("Error: Package name cannot be empty.");
                     exit(512);
                 }
 
-
                 if args_mod[i].contains('.') || args_mod[i].contains('/') {
                     println!("Error: Package name cannot contain '{}'", args_mod[i]);
                     exit(512);
                 }
 
-                if !check_option("remove_protected") && command.eq("remove") && [
-                    "elements",
-                    "gnome-core",
-                    "gnome",
-                    "linux",
-                    "xbps",
-                    "mutter",
-                    "kernel",
-                ] // kernel - nitrogen os's kernel
-                    .contains(&&*args_mod[i]) {
-                    println!("Cannot remove '{0}': Package is required by system.", args_mod[i]);
+                if !check_option("remove_protected")
+                    && command.eq("remove")
+                    && [
+                        "elements",
+                        "gnome-core",
+                        "gnome",
+                        "linux",
+                        "xbps",
+                        "mutter",
+                        "kernel",
+                    ] // kernel - nitrogen os's kernel
+                    .contains(&&*args_mod[i])
+                {
+                    println!(
+                        "Cannot remove '{0}': Package is required by system.",
+                        args_mod[i]
+                    );
                     exit(128);
                 }
 
@@ -351,9 +355,14 @@ fn main() {
 
     if imut_args[2].eq("search") {
         if Path::new(&("/etc/elements/repos/nitrogen/".to_owned() + &args_mod[0])).exists() {
-            println!("Package: {0} was found in Elements' repository.", &args_mod[0]);
+            println!(
+                "Package: {0} was found in Elements' repository.",
+                &args_mod[0]
+            );
             println!("Use 'lmt install {0}' to install it.", &args_mod[0])
-        } else { println!("Couldn't find '{0}' .", &args_mod[0]) }
+        } else {
+            println!("Couldn't find '{0}' .", &args_mod[0])
+        }
     }
 
     let command = &imut_args[1].to_lowercase(); // redeclare "command"
@@ -367,11 +376,23 @@ fn main() {
     } else if command.eq("upgrade") && args_mod.len() == 1 {
         println!("Upgrading: {0:?}", args_mod.join(" "));
     } else if command.eq("install") && args_mod.len() != 1 {
-        println!("Installing {0} packages: {1:?}", args_mod.len(), args_mod.join(" "));
+        println!(
+            "Installing {0} packages: {1:?}",
+            args_mod.len(),
+            args_mod.join(" ")
+        );
     } else if command.eq("remove") && args_mod.len() != 1 {
-        println!("Removing {0} packages: {1:?}", args_mod.len(), args_mod.join(" "));
+        println!(
+            "Removing {0} packages: {1:?}",
+            args_mod.len(),
+            args_mod.join(" ")
+        );
     } else if command.eq("upgrade") && args_mod.len() != 1 {
-        println!("Upgrading {0} packages: {1:?}", args_mod.len(), args_mod.join(" "));
+        println!(
+            "Upgrading {0} packages: {1:?}",
+            args_mod.len(),
+            args_mod.join(" ")
+        );
     }
 
     let mut in_prompt = true;
@@ -386,10 +407,12 @@ fn main() {
 
         println!("{0} {1}", !input.eq("y\n"), !input.eq("yes\n"));
 
-        if input.eq("n\n") || input.eq("no\n") { // if answer is "n" or "no"
+        if input.eq("n\n") || input.eq("no\n") {
+            // if answer is "n" or "no"
             println!("Aborting.");
             exit(0);
-        } else if !input.eq("y\n") && !input.eq("yes\n") { // if answer is neither "y" nor "yes"
+        } else if !input.eq("y\n") && !input.eq("yes\n") {
+            // if answer is neither "y" nor "yes"
             println!("Input Error: Unknown answer.")
         } else {
             in_prompt = false;
@@ -407,15 +430,18 @@ fn main() {
 
         let updated_pkg_db = "";
 
-
         if command.eq("install") {
             if pkg_db.contains(&args_mod[pkgs_done]) {
                 println!("'{}' is already installed. Skipping.", args_mod[pkgs_done]);
             } else {
-                println!("Installing package: {0} {1}/{2}", &args_mod[pkgs_done], pkgs_done + 1, args_mod.len());
+                println!(
+                    "Installing package: {0} {1}/{2}",
+                    &args_mod[pkgs_done],
+                    pkgs_done + 1,
+                    args_mod.len()
+                );
                 let updated_pkg_db = pkg_db.to_owned() + &*args_mod[pkgs_done] + " ";
-                write_to_package_db(updated_pkg_db)
-                    .expect("Couldn't write to package database.");
+                write_to_package_db(updated_pkg_db).expect("Couldn't write to package database.");
 
                 let build_log = Command::new("bash")
                     .arg(path.to_owned() + "/build")
@@ -427,7 +453,12 @@ fn main() {
             }
         } else if command.eq("remove") {
             if pkg_db.contains(&args_mod[pkgs_done]) {
-                println!("Removing package: {0} {1}/{2}", &args_mod[pkgs_done], pkgs_done + 1, args_mod.len());
+                println!(
+                    "Removing package: {0} {1}/{2}",
+                    &args_mod[pkgs_done],
+                    pkgs_done + 1,
+                    args_mod.len()
+                );
 
                 let mut updated_pkg_db = pkg_db.replace(&args_mod[pkgs_done], "");
                 write_to_package_db(updated_pkg_db);
@@ -439,13 +470,24 @@ fn main() {
                 let mut remove_log_file = File::create("/tmp/remove.log").unwrap();
                 remove_log_file.write_all(&remove_log.stdout).unwrap();
             } else {
-                println!("Couldn't remove: {0}: Package not installed", args_mod[pkgs_done])
+                println!(
+                    "Couldn't remove: {0}: Package not installed",
+                    args_mod[pkgs_done]
+                )
             }
         } else if command.eq("update") {
             if !pkg_db.contains(&args_mod[pkgs_done]) {
-                println!("Couldn't update: {0}: Package not installed. Skipping.", args_mod[pkgs_done])
+                println!(
+                    "Couldn't update: {0}: Package not installed. Skipping.",
+                    args_mod[pkgs_done]
+                )
             } else {
-                println!("Updating package: {0} {1}/{2}", &args_mod[pkgs_done], pkgs_done + 1, args_mod.len());
+                println!(
+                    "Updating package: {0} {1}/{2}",
+                    &args_mod[pkgs_done],
+                    pkgs_done + 1,
+                    args_mod.len()
+                );
                 let update_log = Command::new("bash")
                     .arg(path.to_owned() + "/build")
                     .output()
