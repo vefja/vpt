@@ -384,8 +384,6 @@ fn main() {
         io::stdin().read_line(&mut input).unwrap(); // take input
         input = input.to_lowercase();
 
-        println!("{0} {1}", !input.eq("y\n"), !input.eq("yes\n"));
-
         if input.eq("n\n") || input.eq("no\n") { // if answer is "n" or "no"
             println!("Aborting.");
             exit(0);
