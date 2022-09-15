@@ -7,12 +7,12 @@ use std::{env, io, str};
 
 fn upgr_sys() {
     // system update
-    let _p1_log = Command::new("/bin/sh")
+    let _p1_log = Command::new("/bin/sh") // set _p1_log so compiler doesn't scream, only used for xbps' log
         .output()
         .expect("How is this error even possible?");
 
     if test_xbps() && check_option("use_xbps") {
-        // extra step for Nitrogen Linux
+        // extra step for Nitrogen Linux(with xbps)
         println!("Updating xbps packages 1/5");
         let _p1_log = Command::new("xbps-install")
             .arg("-Suy")
@@ -21,7 +21,7 @@ fn upgr_sys() {
     }
 
     if test_xbps() && check_option("use_xbps") {
-        // Change numbering for non-xbps systems(so everything but Void)
+        // Change numbering for non-xbps systems(so everything but Void and NL)
         println!("Removing old repository 2/5");
     } else {
         println!("Removing old repository 1/4")
@@ -228,21 +228,21 @@ fn check_option(option: &str) -> bool {
 }
 
 fn take_snapshot(snapshot_type: &str, snapshot_reason: &str) {
-    // TODO: reactivate snapshots
-    // let reason = snapshot_type.to_lowercase() + " " + snapshot_reason;
-    // Command::new("snapper")
-    //     .arg("-c")
-    //     .arg("root")
-    //     .arg("create")
-    //     .arg("--description")
-    //     .arg(reason)
-    //     .output()
-    //     .expect("Couldn't take snapshot.");
+    let reason = snapshot_type.to_lowercase() + " " + snapshot_reason;
+    Command::new("snapper")
+        .arg("-c")
+        .arg("root")
+        .arg("create")
+        .arg("--description")
+        .arg(reason)
+        .output()
+        .expect("Couldn't take snapshot.");
 }
 
 fn test_xbps() -> bool {
     // check if xbps can be found on the OS
-    // (mostly for usage on NTG OS)
+    // (mostly for usage on NTG OS or 
+	// non Nitrogen Linux distributions)
     return Path::new("/usr/bin/xbps-install").exists();
 }
 
@@ -334,7 +334,7 @@ fn main() {
                 }
             }
         } else {
-            println!("3 arguments expected(2 given).");
+            println!("Error: 3 arguments expected(2 given).");
             exit(512);
         }
     } else {
@@ -369,25 +369,25 @@ fn main() {
 
     args_mod.dedup(); // remove duplicates
 
-    if command.eq("install") && args_mod.len() == 1 {
+    if command.eq("install") || command.eq("in") && args_mod.len() == 1 {
         println!("Installing {0:?}", args_mod.join(" "));
-    } else if command.eq("remove") && args_mod.len() == 1 {
+    } else if command.eq("remove") || command.eq("rm") && args_mod.len() == 1 {
         println!("Removing: {0:?}", args_mod.join(" "));
-    } else if command.eq("upgrade") && args_mod.len() == 1 {
+    } else if command.eq("upgrade") || command.eq("up") && args_mod.len() == 1 {
         println!("Upgrading: {0:?}", args_mod.join(" "));
-    } else if command.eq("install") && args_mod.len() != 1 {
+    } else if command.eq("install") || command.eq("in") && args_mod.len() != 1 {
         println!(
             "Installing {0} packages: {1:?}",
             args_mod.len(),
             args_mod.join(" ")
         );
-    } else if command.eq("remove") && args_mod.len() != 1 {
+    } else if command.eq("remove") || command.eq("rm") && args_mod.len() != 1 {
         println!(
             "Removing {0} packages: {1:?}",
             args_mod.len(),
             args_mod.join(" ")
         );
-    } else if command.eq("upgrade") && args_mod.len() != 1 {
+    } else if command.eq("upgrade") || command.eq("up") && args_mod.len() != 1 {
         println!(
             "Upgrading {0} packages: {1:?}",
             args_mod.len(),
