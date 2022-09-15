@@ -241,8 +241,8 @@ fn take_snapshot(snapshot_type: &str, snapshot_reason: &str) {
 
 fn test_xbps() -> bool {
     // check if xbps can be found on the OS
-    // (mostly for usage on NTG OS or 
-	// non Nitrogen Linux distributions)
+    // (mostly for usage on NTG OS or
+    // non Nitrogen Linux distributions)
     return Path::new("/usr/bin/xbps-install").exists();
 }
 
