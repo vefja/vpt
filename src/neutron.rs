@@ -56,7 +56,8 @@ pub(crate) fn search_package(pkg_name: &str) -> bool {
     return Path::new(&("/etc/elements/repos/nitrogen/".to_owned() + &pkg_name)).exists();
 }
 
-pub(crate) fn inst_package(pkg: &str) -> i32 { // status code
+pub(crate) fn inst_package(pkg: &str) -> i32 {
+    // status code
     let mut pkg_db_path = File::open("/etc/elements/.sys_files/.pkg.db").unwrap();
     let mut pkg_db = String::new();
 
@@ -67,7 +68,6 @@ pub(crate) fn inst_package(pkg: &str) -> i32 { // status code
     }
 
     let path = "/etc/elements/repos/nitrogen/".to_owned() + pkg; // for elements pass args into pkg
-
 
     let build_log = Command::new("bash")
         .arg(path.to_owned() + "/build")
@@ -109,7 +109,6 @@ pub(crate) fn rm_package(pkg: &str) -> i32 {
     return 0;
 }
 
-
 pub(crate) fn up_package(pkg: &str) -> i32 {
     let mut pkg_db_path = File::open("/etc/elements/.sys_files/.pkg.db").unwrap();
     let mut pkg_db = String::new();
@@ -122,7 +121,6 @@ pub(crate) fn up_package(pkg: &str) -> i32 {
 
     let path = "/etc/elements/repos/nitrogen/".to_owned() + pkg; // for elements pass args into pkg
 
-
     let update_log = Command::new("bash")
         .arg(path.to_owned() + "/build")
         .output()
@@ -133,7 +131,6 @@ pub(crate) fn up_package(pkg: &str) -> i32 {
 
     return 0;
 }
-
 
 pub(crate) fn upgr_sys() {
     // system update
@@ -258,7 +255,7 @@ pub(crate) fn upgr_sys() {
         let mut version_path = File::open(
             "/etc/elements/repos/nitrogen/".to_owned() + pkg_db_vec[packages_done] + "/version",
         )
-            .unwrap();
+        .unwrap();
 
         let mut version = String::new();
         version_path.read_to_string(&mut version).unwrap();
@@ -268,7 +265,7 @@ pub(crate) fn upgr_sys() {
                 + pkg_db_vec[packages_done]
                 + "/version",
         )
-            .unwrap();
+        .unwrap();
         let mut version_old = String::new();
         version_old_path.read_to_string(&mut version_old).unwrap();
 

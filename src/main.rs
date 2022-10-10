@@ -1,14 +1,13 @@
-use std::{env, io};
-use std::path::Path;
-use std::io::{stdout, Write};
 use nix::unistd::getuid;
+use std::io::{stdout, Write};
+use std::path::Path;
+use std::{env, io};
 
 mod neutron; // import Neutron API
 
 fn main() {
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
-
 
     if imut_args.len() >= 2 {
         let command = &imut_args[1].to_lowercase();
@@ -65,14 +64,14 @@ fn main() {
             if !neutron::check_option("remove_protected")
                 && command.eq("remove")
                 && [
-                "elements",
-                "gnome-core",
-                "gnome",
-                "linux",
-                "xbps",
-                "mutter",
-                "kernel",
-            ] // kernel - nitrogen os's kernel
+                    "elements",
+                    "gnome-core",
+                    "gnome",
+                    "linux",
+                    "xbps",
+                    "mutter",
+                    "kernel",
+                ] // kernel - nitrogen os's kernel
                 .contains(&&*args_mod[i])
             {
                 println!(
@@ -195,7 +194,6 @@ fn main() {
 
         pkgs_done += 1;
     }
-
 }
 
 fn help(exit_code: i32) {
