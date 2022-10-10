@@ -88,16 +88,18 @@ fn main() {
                 std::process::exit(256); // Error 256 for package not found
             }
         }
+    } else if command == "update" {
+        neutron::upgr_sys();
     } else {
         println!("At least one 3 arguments are required(2 found)");
         std::process::exit(1);
     }
 
     args_mod.remove(0);
-    args_mod.remove(0); // remove non-important arguments(will be saved in imut args_mod)
+    args_mod.remove(0); // remove non-important arguments(will be saved in imut_args)
 
     if imut_args[2].eq("search") {
-        if Path::new(&("/etc/elements/repos/nitrogen/".to_owned() + &args_mod[0])).exists() {
+        if neutron::search_package(&args_mod[1]) {
             println!(
                 "Package: {0} was found in Elements' repository.",
                 &args_mod[0]
