@@ -1,11 +1,20 @@
-use nix::unistd::getuid;
-use std::io::{stdout, Write};
-use std::path::Path;
 use std::{env, io};
+use std::path::Path;
+use std::io::{stdout, Write};
+use nix::unistd::getuid;
+use crate::imut_api::enterrw;
+use crate::neutron::{add_pkg_to_db, compare_old_to_new};
 
 mod neutron; // import Neutron API
+mod imut_api; // Immutability API
 
 fn main() {
+    add_pkg_to_db("neofetch");
+
+    compare_old_to_new("neofetch");
+
+    return;
+
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
 
@@ -29,7 +38,8 @@ fn main() {
                 println!("You must be root to use this command!");
                 std::process::exit(1);
             }
-        } else if command == "help" || command == "help" {
+
+        } else if command.eq("help") || command.eq( "help") {
             help(0);
         } else {
             println!("Invalid operation: {}", command);
@@ -64,14 +74,14 @@ fn main() {
             if !neutron::check_option("remove_protected")
                 && command.eq("remove")
                 && [
-                    "elements",
-                    "gnome-core",
-                    "gnome",
-                    "linux",
-                    "xbps",
-                    "mutter",
-                    "kernel",
-                ] // kernel - nitrogen os's kernel
+                "elements",
+                "gnome-core",
+                "gnome",
+                "linux",
+                "xbps",
+                "mutter",
+                "kernel",
+            ] // kernel - nitrogen os's kernel
                 .contains(&&*args_mod[i])
             {
                 println!(
@@ -87,7 +97,23 @@ fn main() {
                 std::process::exit(256); // Error 256 for package not found
             }
         }
-    } else if command == "update" {
+    } else if command == "upgrade" || command == "up" {
+        let mut prompt = true;
+        while prompt {
+            print!("Are you sure you want to upgrade all packages? [Y/n] ");
+            stdout().flush().unwrap();
+            let mut input = String::new();
+            io::stdin().read_line(&mut input).unwrap();
+            let input = input.trim().to_lowercase();
+            if input == "y" || input == "yes" || input.is_empty() {
+                prompt = false;
+            } else if input == "n" || input == "no" {
+                std::process::exit(0);
+            } else {
+                println!("Invalid input: {}", input);
+            }
+        }
+
         neutron::upgr_sys();
     } else {
         println!("At least one 3 arguments are required(2 found)");
@@ -151,8 +177,8 @@ fn main() {
             // if answer is "n" or "no"
             println!("Aborting.");
             std::process::exit(0);
-        } else if !input.eq("y\n") && !input.eq("yes\n") {
-            // if answer is neither "y" nor "yes"
+        } else if !input.eq("y\n") && !input.eq("yes\n") && !input.eq("\n") {
+            // if answer is neither "y" nor "yes" nor nothing
             println!("Input Error: Unknown answer.")
         } else {
             in_prompt = false;
@@ -160,7 +186,11 @@ fn main() {
     }
 
     let mut pkgs_done = 0;
-
+    
+    if imut_api::getmode() {
+        imut_api::enterrw();
+    }
+    
     while pkgs_done < args_mod.len() {
         if command.eq("install") || command.eq("in") {
             println!(
@@ -169,7 +199,7 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if neutron::inst_package(&args_mod[pkgs_done]) == 128 {
+            if neutron::inst_package(&args_mod[pkgs_done], "") == 128 {
                 println!("Package already installed. Skipping...");
             };
         } else if command.eq("remove") || command.eq("rm") {
@@ -195,6 +225,12 @@ fn main() {
         }
 
         pkgs_done += 1;
+
+    }
+
+    // println!("{}", imut_api::enterro());
+	if imut_api::getmode() {
+        imut_api::enterro();
     }
 }
 
