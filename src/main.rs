@@ -1,12 +1,12 @@
-use std::{env, io};
-use std::path::Path;
-use std::io::{stdout, Write};
-use nix::unistd::getuid;
 use crate::imut_api::enterrw;
 use crate::neutron::{add_pkg_to_db, compare_old_to_new};
+use nix::unistd::getuid;
+use std::io::{stdout, Write};
+use std::path::Path;
+use std::{env, io};
 
-mod neutron; // import Neutron API
-mod imut_api; // Immutability API
+mod imut_api;
+mod neutron; // import Neutron API // Immutability API
 
 fn main() {
     add_pkg_to_db("neofetch");
@@ -38,8 +38,7 @@ fn main() {
                 println!("You must be root to use this command!");
                 std::process::exit(1);
             }
-
-        } else if command.eq("help") || command.eq( "help") {
+        } else if command.eq("help") || command.eq("help") {
             help(0);
         } else {
             println!("Invalid operation: {}", command);
@@ -74,14 +73,14 @@ fn main() {
             if !neutron::check_option("remove_protected")
                 && command.eq("remove")
                 && [
-                "elements",
-                "gnome-core",
-                "gnome",
-                "linux",
-                "xbps",
-                "mutter",
-                "kernel",
-            ] // kernel - nitrogen os's kernel
+                    "elements",
+                    "gnome-core",
+                    "gnome",
+                    "linux",
+                    "xbps",
+                    "mutter",
+                    "kernel",
+                ] // kernel - nitrogen os's kernel
                 .contains(&&*args_mod[i])
             {
                 println!(
@@ -186,11 +185,11 @@ fn main() {
     }
 
     let mut pkgs_done = 0;
-    
+
     if imut_api::getmode() {
         imut_api::enterrw();
     }
-    
+
     while pkgs_done < args_mod.len() {
         if command.eq("install") || command.eq("in") {
             println!(
@@ -225,11 +224,10 @@ fn main() {
         }
 
         pkgs_done += 1;
-
     }
 
     // println!("{}", imut_api::enterro());
-	if imut_api::getmode() {
+    if imut_api::getmode() {
         imut_api::enterro();
     }
 }
