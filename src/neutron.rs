@@ -132,18 +132,18 @@ pub(crate) fn search_package(pkg_name: &str) -> bool {
     return Path::new(&("/etc/elements/repos/nitrogen/".to_owned() + pkg_name)).exists();
 } // TODO: Update search package function to use sqlite
 
-pub(crate) fn get_package(pkg: &str, cache: bool, location: &str) {
-    let link = "" // add link searching
+pub(crate) fn get_package(pkg: &str, cache: bool, location: &str) -> i32 {
+    let link = ""; // add link searching
     
     let download_cmd = ""; // set default command so compiler doesn't scream
 
     if cache {
         let download_cmd = "curl ".to_owned() + link + " >> " + "/tmp/lmnt/"; // TODO: Randomize name
     } else {
-        let download_cmd = "curl".to_owned() + link + " >> ".to_owned() + location;
+        let download_cmd = "curl".to_owned() + link + &" >> ".to_owned() + location;
     }
 
-    Command::new(download_cmd).expect("Error: Couldn't download package.")
+    return Command::new(download_cmd).status().expect("Error: Couldn't download package.")
 }
 
 pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool) -> i32 { // return i32 for error codes; 0 - good
