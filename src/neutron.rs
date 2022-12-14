@@ -140,7 +140,7 @@ pub(crate) fn get_package(pkg: &str, cache: bool, location: &str) {
     if cache {
         let download_cmd = "curl ".to_owned() + link + " >> " + "/tmp/lmnt/"; // TODO: Randomize name
     } else {
-        let download_cmd = "curl".to_owned() + link " >> ".to_owned() + location;
+        let download_cmd = "curl".to_owned() + link + " >> ".to_owned() + location;
     }
 
     Command::new(download_cmd).output().expect("Error: Couldn't download package.")
@@ -154,7 +154,7 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool) -> i32 { // retu
     }
 
     if !offline { // offline install tries to install the package off the disk
-        get_package(); 
+        get_package(pkg, true, ""); 
     }
 
     let temp_dir = env::temp_dir();
