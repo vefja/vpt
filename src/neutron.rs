@@ -132,16 +132,32 @@ pub(crate) fn search_package(pkg_name: &str) -> bool {
     return Path::new(&("/etc/elements/repos/nitrogen/".to_owned() + pkg_name)).exists();
 } // TODO: Update search package function to use sqlite
 
-pub(crate) fn install_tar(pkg: &str, root: &str) -> i32 { // return i32 for error codes; 0 - good
+pub(crate) fn get_package(pkg: &str, cache: bool, location: &str) {
+    let link = "" // add link searching
+    
+    let download_cmd = ""; // set default command so compiler doesn't scream
+
+    if cache {
+        let download_cmd = "curl ".to_owned() + link + " >> " + "/tmp/lmnt/"; // TODO: Randomize name
+    } else {
+        let download_cmd = "curl".to_owned() + link " >> ".to_owned() + location;
+    }
+
+    Command::new(download_cmd).output().expect("Error: Couldn't download package.")
+}
+
+pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool) -> i32 { // return i32 for error codes; 0 - good
     if !root.is_empty() && !Path::new(root).exists() {
         println!("Error: Cannot install to: {}: No such directory.", root);
     } else if !root.is_empty() {
         // TODO: add ability to install to a different root directory
     }
 
-    let temp_dir = env::temp_dir();
+    if !offline { // offline install tries to install the package off the disk
+        get_package(); 
+    }
 
-    // TODO: Download package from repo instead of having it locally
+    let temp_dir = env::temp_dir();
 
     Command::new("tar")
         .arg("xzf")
