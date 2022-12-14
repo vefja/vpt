@@ -417,7 +417,7 @@ pub(crate) fn upgr_sys() {
             )
             .output()
             .expect("Couldn't execute bash"); */
- // TODO: change this to tar installation
+            // TODO: change this to tar installation
             install_tar(pkg_db_vec[packages_done], "", false);
         }
 
