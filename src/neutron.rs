@@ -143,7 +143,7 @@ pub(crate) fn get_package(pkg: &str, cache: bool, location: &str) {
         let download_cmd = "curl".to_owned() + link + " >> ".to_owned() + location;
     }
 
-    Command::new(download_cmd).output().expect("Error: Couldn't download package.")
+    Command::new(download_cmd).expect("Error: Couldn't download package.")
 }
 
 pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool) -> i32 { // return i32 for error codes; 0 - good
@@ -399,7 +399,7 @@ pub(crate) fn upgr_sys() {
                 )
                 .output()
                 .expect("Couldn't execute bash"); */ // TODO: change this to tar installation
-            install_tar(pkg_db_vec[packages_done], "");
+            install_tar(pkg_db_vec[packages_done], "", false);
         }
 
         pkg_left -= 1;
