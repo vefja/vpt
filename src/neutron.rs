@@ -132,7 +132,7 @@ pub(crate) fn search_package(pkg_name: &str) -> bool {
     return Path::new(&("/etc/elements/repos/nitrogen/".to_owned() + pkg_name)).exists();
 } // TODO: Update search package function to use sqlite
 
-pub(crate) fn get_package(pkg: &str, cache: bool, location: &str) -> i32 {
+pub(crate) fn get_package(pkg: &str, cache: bool, location: &str) -> ExitStatus {
     let link = ""; // add link searching
     
     let download_cmd = ""; // set default command so compiler doesn't scream
