@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use std::process::{exit, Command};
+use std::process::{exit, Command, ExitStatus};
 use std::{io, str, env};
 use sqlite;
 use version_compare::{Cmp, Version};
