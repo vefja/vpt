@@ -1,11 +1,11 @@
+use rand::Rng;
+use sqlite;
 use std::fs::File;
-use std::path::Path;
 use std::io::prelude::*;
+use std::path::Path;
+use std::process::{exit, Command, ExitStatus};
 use std::{env, fs, io, str};
 use version_compare::{Cmp, Version};
-use sqlite;
-use rand::Rng;
-use std::process::{exit, Command, ExitStatus};
 
 pub(crate) fn check_option(option: &str) -> bool {
     let output = Command::new("bash")
@@ -34,18 +34,19 @@ pub(crate) fn compare_old_to_new(package: &str) -> bool {
         "
         CREATE TABLE if not exists packages (name TEXT, version INTEGER, description TEXT);
         ",
-    ).unwrap(); // make sure table exists
+    )
+    .unwrap(); // make sure table exists
 
     // create other table pkglist if it doesn't exist
     db2.execute(
         "
         CREATE TABLE if not exists pkglist (name TEXT, version INTEGER, description TEXT);
         ",
-    ).unwrap(); // make sure table exists
+    )
+    .unwrap(); // make sure table exists
 
     let mut oldver = String::new();
     let mut newver = String::new();
-
 
     db1.iterate("SELECT name, version FROM packages", |pairs| {
         let mut chkver = false;
@@ -60,7 +61,7 @@ pub(crate) fn compare_old_to_new(package: &str) -> bool {
         }
         true
     })
-        .unwrap();
+    .unwrap();
 
     db2.iterate("SELECT name, version FROM pkglist", |pairs| {
         let mut chkver = false;
@@ -75,7 +76,7 @@ pub(crate) fn compare_old_to_new(package: &str) -> bool {
         }
         true
     })
-        .unwrap();
+    .unwrap();
 
     println!("{0} {1}", oldver, newver);
 
@@ -101,7 +102,8 @@ fn get_pkg_version(package: &str) -> String {
         "
         CREATE TABLE if not exists pkglist (name TEXT, version INTEGER, description TEXT);
         ",
-    ).unwrap();
+    )
+    .unwrap();
 
     let mut ver = String::new();
 
@@ -118,7 +120,7 @@ fn get_pkg_version(package: &str) -> String {
         }
         true
     })
-        .unwrap();
+    .unwrap();
 
     return ver;
 }
@@ -130,7 +132,8 @@ fn get_pkg_desc(package: &str) -> String {
         "
         CREATE TABLE if not exists pkglist (name TEXT, version INTEGER, description TEXT);
         ",
-    ).unwrap();
+    )
+    .unwrap();
 
     let mut description = String::new();
 
@@ -147,20 +150,23 @@ fn get_pkg_desc(package: &str) -> String {
         }
         true
     })
-        .unwrap();
+    .unwrap();
 
     description
 }
 
 pub(crate) fn add_pkg_to_db(package: &str) {
-    if !db_lock() { return; }; // check if database is locked
+    if !db_lock() {
+        return;
+    }; // check if database is locked
 
     let pkgdb = sqlite::open("/var/lib/elements/local/packages.db").unwrap();
 
-    pkgdb
-        .execute("
+    pkgdb.execute(
+        "
         CREATE TABLE if not exists packages (name TEXT, version TEXT, description TEXT);
-        ", );
+        ",
+    );
 
     let ver = get_pkg_version(package); // TODO: remove placeholder
 
@@ -202,14 +208,15 @@ pub(crate) fn debug_add_pkg_to_pkglist(package: &str) {
 
     println!("{}", cmd);
 
-    pkgdb.execute("CREATE TABLE if not exists pkglist (name TEXT, version TEXT, description TEXT);").unwrap();
+    pkgdb
+        .execute("CREATE TABLE if not exists pkglist (name TEXT, version TEXT, description TEXT);")
+        .unwrap();
     pkgdb.execute(cmd).unwrap();
 
     // package = the function argument
     // version can be found
     // Description is found like version
 }
-
 
 fn db_lock() -> bool {
     if Path::new("/var/lib/elements/local/packages.db.lock").exists() {
@@ -304,10 +311,12 @@ fn assign_random_name() -> String {
                             0123456789)(*&^%$#@!~";
     let mut rng = rand::thread_rng();
 
-    let name: String = (0..10).map(|_| {
-        let idx = rng.gen_range(0..CHARSET.len());
-        CHARSET[idx] as char
-    }).collect();
+    let name: String = (0..10)
+        .map(|_| {
+            let idx = rng.gen_range(0..CHARSET.len());
+            CHARSET[idx] as char
+        })
+        .collect();
 
     return name;
 }
@@ -316,7 +325,8 @@ pub(crate) fn inst_package(pkg: &str, root: &str) -> i32 {
     // status code
     if !root.is_empty() && !Path::new(root).exists() {
         println!("Error: Cannot install to: {}", root);
-    } else if !root.is_empty() {}
+    } else if !root.is_empty() {
+    }
 
     let mut pkg_db_path = File::open("/etc/elements/.sys_files/.pkg.db").unwrap();
     let mut pkg_db = String::new();
