@@ -1,10 +1,11 @@
-use sqlite;
 use std::fs::File;
-use std::io::prelude::*;
 use std::path::Path;
-use std::process::{exit, Command, ExitStatus};
-use std::{env, io, str};
+use std::io::prelude::*;
+use std::{env, fs, io, str};
 use version_compare::{Cmp, Version};
+use sqlite;
+use rand::Rng;
+use std::process::{exit, Command, ExitStatus};
 
 pub(crate) fn check_option(option: &str) -> bool {
     let output = Command::new("bash")
@@ -24,90 +25,174 @@ pub(crate) fn check_option(option: &str) -> bool {
 }
 
 pub(crate) fn compare_old_to_new(package: &str) -> bool {
-    // compare old version to newest
-    let db1 = sqlite::open("/home/auralyn/db1").unwrap();
-    let db2 = sqlite::open("/home/auralyn/db2").unwrap();
+    // restore databases from backup using sqlite
+    let mut db1 = sqlite::open("/var/lib/elements/local/packages.db").unwrap();
+    let mut db2 = sqlite::open("/var/lib/elements/packages.db").unwrap();
 
+    // create table packages if it doesn't exist
     db1.execute(
         "
         CREATE TABLE if not exists packages (name TEXT, version INTEGER, description TEXT);
-    ",
-    )
-    .unwrap(); // make sure table exists
+        ",
+    ).unwrap(); // make sure table exists
 
+    // create other table pkglist if it doesn't exist
     db2.execute(
         "
         CREATE TABLE if not exists pkglist (name TEXT, version INTEGER, description TEXT);
-    ",
-    )
-    .unwrap(); // make sure table exists
+        ",
+    ).unwrap(); // make sure table exists
 
-    let mut db1_ver = String::new();
-    let mut db2_ver = String::new();
+    let mut oldver = String::new();
+    let mut newver = String::new();
+
 
     db1.iterate("SELECT name, version FROM packages", |pairs| {
-        let mut chk_ver = false;
+        let mut chkver = false;
 
         for &(column, value) in pairs.iter() {
             if column == "name" && value.unwrap() == package {
-                chk_ver = true;
-            } else if column == "version" && chk_ver {
-                db1_ver = value.unwrap().to_string();
-                chk_ver = false;
+                chkver = true;
+            } else if column == "version" && chkver {
+                oldver = value.unwrap().to_string();
+                chkver = false;
             }
         }
         true
     })
-    .unwrap();
+        .unwrap();
 
     db2.iterate("SELECT name, version FROM pkglist", |pairs| {
-        let mut chk_ver = false;
+        let mut chkver = false;
 
         for &(column, value) in pairs.iter() {
             if column == "name" && value.unwrap() == package {
-                chk_ver = true;
-            } else if column == "version" && chk_ver {
-                db2_ver = value.unwrap().to_string();
-                chk_ver = false;
+                chkver = true;
+            } else if column == "version" && chkver {
+                newver = value.unwrap().to_string();
+                chkver = false;
             }
         }
         true
     })
-    .unwrap();
+        .unwrap();
 
-    println!("{0} {1}", db1_ver, db2_ver);
+    println!("{0} {1}", oldver, newver);
 
-    let db1_ver = Version::from(&db1_ver).unwrap();
+    let oldver = Version::from(&oldver).unwrap();
 
-    let db2_ver = Version::from(&db2_ver).unwrap();
+    let newver = Version::from(&newver).unwrap();
 
-    let mut isnewer = false;
+    let mut is_newer = false;
 
-    if db1_ver.compare(db2_ver) == Cmp::Gt {
-        isnewer = true
+    if oldver.compare(newver) == Cmp::Gt {
+        is_newer = true;
     }
 
     // println!("Current: {0} \n Newest: {1:?} \n Newer? {2}", db1_ver, db2_ver, isnewer);
 
-    return isnewer; // return if db2's version is newer than db1's
+    return !is_newer; // return if db2's version is newer than db1's
+}
+
+fn get_pkg_version(package: &str) -> String {
+    let mut db = sqlite::open("/var/lib/elements/packages.db").unwrap();
+
+    db.execute(
+        "
+        CREATE TABLE if not exists pkglist (name TEXT, version INTEGER, description TEXT);
+        ",
+    ).unwrap();
+
+    let mut ver = String::new();
+
+    db.iterate("SELECT name, version FROM pkglist", |pairs| {
+        let mut chkver = false;
+
+        for &(column, value) in pairs.iter() {
+            if column == "name" && value.unwrap() == package {
+                chkver = true;
+            } else if column == "version" && chkver {
+                ver = value.unwrap().to_string();
+                chkver = false;
+            }
+        }
+        true
+    })
+        .unwrap();
+
+    return ver;
+}
+
+fn get_pkg_desc(package: &str) -> String {
+    let mut db = sqlite::open("/var/lib/elements/packages.db").unwrap();
+
+    db.execute(
+        "
+        CREATE TABLE if not exists pkglist (name TEXT, version INTEGER, description TEXT);
+        ",
+    ).unwrap();
+
+    let mut description = String::new();
+
+    db.iterate("SELECT name, description FROM pkglist", |pairs| {
+        let mut get_desc = false;
+
+        for &(column, value) in pairs.iter() {
+            if column == "name" && value.unwrap() == package {
+                get_desc = true;
+            } else if column == "description" && get_desc {
+                description = value.unwrap().to_string();
+                get_desc = false;
+            }
+        }
+        true
+    })
+        .unwrap();
+
+    description
 }
 
 pub(crate) fn add_pkg_to_db(package: &str) {
-    let pkg_db = sqlite::open("db1").unwrap();
+    if !db_lock() { return; }; // check if database is locked
 
-    pkg_db
-        .execute(
-            "
+    let pkgdb = sqlite::open("/var/lib/elements/local/packages.db").unwrap();
+
+    pkgdb
+        .execute("
         CREATE TABLE if not exists packages (name TEXT, version TEXT, description TEXT);
-        ",
-        )
-        .unwrap();
+        ", );
 
-    let ver = 0.1; // TODO: remove placeholder
+    let ver = get_pkg_version(package); // TODO: remove placeholder
 
-    let desc = "Foo";
+    let desc = get_pkg_desc(package);
 
     let cmd = "INSERT INTO packages VALUES ('".to_owned()
+        + package
+        + "', '"
+        + &*ver.to_string()
+        + "', '"
+        + &desc
+        + "');";
+
+    println!("{}", cmd);
+
+    pkgdb.execute(cmd).unwrap();
+
+    // package = the function argument
+    // version can be found
+    // Description is found like version
+
+    fs::remove_file("/var/lib/elements/local/packages.db.lock").unwrap();
+}
+
+pub(crate) fn debug_add_pkg_to_pkglist(package: &str) {
+    let pkgdb = sqlite::open("/var/lib/elements/packages.db").unwrap();
+
+    let ver = 999999;
+
+    let desc = "Foo Bar Baz";
+
+    let cmd = "INSERT INTO pkglist VALUES ('".to_owned()
         + package
         + "', '"
         + &*ver.to_string()
@@ -117,11 +202,24 @@ pub(crate) fn add_pkg_to_db(package: &str) {
 
     println!("{}", cmd);
 
-    pkg_db.execute(cmd).unwrap()
+    pkgdb.execute("CREATE TABLE if not exists pkglist (name TEXT, version TEXT, description TEXT);").unwrap();
+    pkgdb.execute(cmd).unwrap();
 
     // package = the function argument
     // version can be found
     // Description is found like version
+}
+
+
+fn db_lock() -> bool {
+    if Path::new("/var/lib/elements/local/packages.db.lock").exists() {
+        println!("Couldn't acquire lock on database");
+        return false; // return false if you can't lock database
+    }
+
+    let mut file = File::create("/var/lib/elements/local/packages.db.lock").unwrap();
+    file.write_all(b"locked").unwrap();
+    return true; // return true if you can lock database
 }
 
 pub(crate) fn new_snapshot(snapshot_type: &str, snapshot_reason: &str) {
@@ -144,23 +242,26 @@ pub(crate) fn test_xbps() -> bool {
 }
 
 pub(crate) fn search_package(pkg_name: &str) -> bool {
-    return Path::new(&("/etc/elements/repos/nitrogen/".to_owned() + pkg_name)).exists();
-} // TODO: Update search package function to use sqlite
+    return !get_pkg_version(pkg_name).is_empty(); // return if package is found (true if found, false if not
+}
 
-pub(crate) fn get_package(pkg: &str, cache: bool, location: &str) -> ExitStatus {
+pub(crate) fn get_package(pkg: &str, cache: bool, location: &str, tarName: &str) -> ExitStatus {
     let link = ""; // add link searching
 
-    let download_cmd = ""; // set default command so compiler doesn't scream
+    let status = if cache {
+        let download_cmd = "curl ".to_owned() + link + " >> " + "/tmp/lmnt/" + tarName;
 
-    if cache {
-        let download_cmd = "curl ".to_owned() + link + " >> " + "/tmp/lmnt/"; // TODO: Randomize name
+        Command::new(download_cmd)
+            .status()
+            .expect("Error: Couldn't download package.")
     } else {
         let download_cmd = "curl".to_owned() + link + &" >> ".to_owned() + location;
-    }
 
-    return Command::new(download_cmd)
-        .status()
-        .expect("Error: Couldn't download package.");
+        Command::new(download_cmd)
+            .status()
+            .expect("Error: Couldn't download package.")
+    };
+    status
 }
 
 pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool) -> i32 {
@@ -171,34 +272,51 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool) -> i32 {
         // TODO: add ability to install to a different root directory
     }
 
+    let tarName = assign_random_name();
+
     if !offline {
         // offline install tries to install the package off the disk
-        get_package(pkg, true, "");
+        //get_package(pkg, true, "", &tarName);
     }
 
     let temp_dir = env::temp_dir();
 
+    let mut tar_file = "/tmp/lmnt/".to_owned() + &tarName;
+
+    println!("{}", tar_file);
+
     Command::new("tar")
         .arg("xzf")
-        .arg("") // TODO: Change this to a random name
+        .arg(tar_file) // TODO: Change this to a random name
         .arg("-C")
         .arg(temp_dir)
         .output()
         .expect("Couldn't extract tar.gz file.");
 
-    // for file in std::fs::read_dir(temp_dir+ &"BINARIES").unwrap() {
-    //     println!("{}", file.unwrap().path().display());
-    // }
+    add_pkg_to_db(pkg);
 
     return 0;
+}
+
+fn assign_random_name() -> String {
+    const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+                            abcdefghijklmnopqrstuvwxyz\
+                            0123456789)(*&^%$#@!~";
+    let mut rng = rand::thread_rng();
+
+    let name: String = (0..10).map(|_| {
+        let idx = rng.gen_range(0..CHARSET.len());
+        CHARSET[idx] as char
+    }).collect();
+
+    return name;
 }
 
 pub(crate) fn inst_package(pkg: &str, root: &str) -> i32 {
     // status code
     if !root.is_empty() && !Path::new(root).exists() {
         println!("Error: Cannot install to: {}", root);
-    } else if !root.is_empty() {
-    }
+    } else if !root.is_empty() {}
 
     let mut pkg_db_path = File::open("/etc/elements/.sys_files/.pkg.db").unwrap();
     let mut pkg_db = String::new();
@@ -409,15 +527,6 @@ pub(crate) fn upgr_sys() {
                 kernel_change = true;
             }
 
-            /* Command::new("bash")
-            .arg(
-                "/etc/elements/repos/nitrogen/".to_owned()
-                    + pkg_db_vec[packages_done]
-                    + "/build",
-            )
-            .output()
-            .expect("Couldn't execute bash"); */
-            // TODO: change this to tar installation
             install_tar(pkg_db_vec[packages_done], "", false);
         }
 
