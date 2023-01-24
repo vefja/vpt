@@ -1,16 +1,23 @@
-use crate::imut_api::enterrw;
-use crate::neutron::{
-    add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, search_package,
-};
-use nix::unistd::getuid;
-use std::io::{stdout, Write};
-use std::path::Path;
 use std::{env, io};
+use std::path::Path;
+use std::io::{stdout, Write};
+use nix::unistd::getuid;
+use crate::imut_api::enterrw;
+use crate::neutron::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, search_package};
 
-mod imut_api;
-mod neutron; // import Neutron API // Immutability API
+mod neutron; // import Neutron API
+mod imut_api; // Immutability API
 
 fn main() {
+    neutron::install_tar("neofetch", "", false, false);
+
+    neutron::list_packages();
+
+    neutron::remove_tar("neofetch");
+
+    neutron::list_packages();
+    return;
+
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
 
@@ -34,7 +41,8 @@ fn main() {
                 println!("You must be root to use this command!");
                 std::process::exit(1);
             }
-        } else if command.eq("help") || command.eq("help") {
+
+        } else if command.eq("help") || command.eq( "help") {
             help(0);
         } else {
             println!("Invalid operation: {}", command);
@@ -69,14 +77,14 @@ fn main() {
             if !neutron::check_option("remove_protected")
                 && command.eq("remove")
                 && [
-                    "elements",
-                    "gnome-core",
-                    "gnome",
-                    "linux",
-                    "xbps",
-                    "mutter",
-                    "kernel",
-                ] // kernel - nitrogen os's kernel
+                "elements",
+                "gnome-core",
+                "gnome",
+                "linux",
+                "xbps",
+                "mutter",
+                "kernel",
+            ] // kernel - nitrogen os's kernel
                 .contains(&&*args_mod[i])
             {
                 println!(
@@ -109,7 +117,7 @@ fn main() {
             }
         }
 
-        neutron::upgr_sys();
+        neutron::upgrade_system();
     } else {
         println!("At least one 3 arguments are required(2 found)");
         std::process::exit(1);
@@ -181,11 +189,11 @@ fn main() {
     }
 
     let mut pkgs_done = 0;
-
+    
     if imut_api::getmode() {
         imut_api::enterrw();
     }
-
+    
     while pkgs_done < args_mod.len() {
         if command.eq("install") || command.eq("in") {
             println!(
@@ -194,7 +202,7 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if neutron::inst_package(&args_mod[pkgs_done], "") == 128 {
+            if neutron::install_tar(&args_mod[pkgs_done], "", false, false) == 128 {
                 println!("Package already installed. Skipping...");
             };
         } else if command.eq("remove") || command.eq("rm") {
@@ -204,7 +212,7 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if neutron::rm_package(&args_mod[pkgs_done]) == 128 {
+            if neutron::remove_tar(&args_mod[pkgs_done]) == 128 {
                 println!("Package not installed. Skipping...");
             };
         } else if command.eq("upgrade") || command.eq("up") {
@@ -214,16 +222,17 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if neutron::up_package(&args_mod[pkgs_done]) == 128 {
+            if neutron::install_tar(&args_mod[pkgs_done], "", false, true) == 128 {
                 println!("Package not installed. Skipping...");
             };
         }
 
         pkgs_done += 1;
+
     }
 
     // println!("{}", imut_api::enterro());
-    if imut_api::getmode() {
+	if imut_api::getmode() {
         imut_api::enterro();
     }
 }

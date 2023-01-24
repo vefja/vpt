@@ -1,5 +1,5 @@
 [package]
-name = "Elements"
+name = "vpt"
 version = "0.13.0"
 edition = "2021"
 
@@ -13,3 +13,4 @@ lazy_static  = "1.4.0"
 version-compare = "0.1.0"
 rand = "0.8.4"
 base64 = "0.21.0"
+tempdir = "0.3.7"

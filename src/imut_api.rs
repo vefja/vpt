@@ -1,14 +1,13 @@
-use lazy_static::lazy_static;
 use std::process::Command; // for executing commands
+use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref PATHS: Vec<&'static str> = vec!["/usr", "/lib", "/sbin", "/bin"];
+    static ref PATHS : Vec<&'static str> = vec!["/usr", "/lib", "/sbin", "/bin"];
 }
 
 fn check_fs(path: String) -> bool {
     if path == "/usr" {
-        let tmp = Command::new("lsattr")
-            .arg("/usr")
+        let tmp = Command::new("lsattr").arg("/usr")
             .output()
             .expect("failed to execute process");
 
@@ -30,8 +29,7 @@ fn check_fs(path: String) -> bool {
 
     let true_path = "/".to_owned() + &true_path;
 
-    let tmp = Command::new("lsattr")
-        .arg(true_path)
+    let tmp = Command::new("lsattr").arg(true_path)
         .output()
         .expect("failed to execute process");
 
@@ -54,12 +52,11 @@ pub(crate) fn getmode() -> bool {
     return true;
 }
 
+
+
 pub(crate) fn enterro() -> i32 {
     for path in PATHS.iter() {
-        Command::new("chattr")
-            .arg("+i")
-            .arg("-R")
-            .arg(path)
+        Command::new("chattr").arg("+i").arg("-R").arg(path)
             .output()
             .expect("failed to execute process");
     }
@@ -69,10 +66,7 @@ pub(crate) fn enterro() -> i32 {
 
 pub(crate) fn enterrw() -> i32 {
     for path in PATHS.iter() {
-        Command::new("chattr")
-            .arg("-i")
-            .arg("-R")
-            .arg(path)
+        Command::new("chattr").arg("-i").arg("-R").arg(path)
             .output()
             .expect("failed to execute process");
     }
