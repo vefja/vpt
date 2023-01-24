@@ -273,7 +273,9 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
     println!("{}", tarName);
 
-    let temp_dir = "/tmp/vpt/".to_owned() + &assign_random_name();
+    let dir_name = assign_random_name();
+
+    let temp_dir = "/tmp/vpt/".to_owned() + &dir_name;
 
     if !offline {
         // offline install tries to install the package off the disk
@@ -300,6 +302,24 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
     for path in paths {
         println!("Name: {}", path.unwrap().path().display())
     }
+
+    let usr_binpath = "/tmp/vpt".to_owned() + &dir_name + "/BINARIES" + "/usr-bin";
+
+    let bin_binpath = "/tmp/vpt".to_owned() + &dir_name + "/BINARIES" + "/bin";
+
+    if Path::new(&usr_binpath).is_dir() {
+        for patch in fs::read_dir(&usr_binpath).unwrap() {
+            let patch = patch.unwrap().path();
+            let patch = patch.to_str().unwrap();
+            println!("Installing: {}", patch);
+        }
+    } else if Path::new(&bin_binpath).is_dir() {
+        for patch in fs::read_dir(&bin_binpath).unwrap() {
+            let patch = patch.unwrap().path();
+            let patch = patch.to_str().unwrap();
+            println!("Installing: {}", patch);
+        }
+    } // TODO: do the same for CONFIGS, BOOT, MANUALS, and LIBRARIES
 
     if !upgrade {
         add_pkg_to_db(pkg, "");
