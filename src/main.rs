@@ -3,12 +3,18 @@ use std::path::Path;
 use std::io::{stdout, Write};
 use nix::unistd::getuid;
 use crate::imut_api::enterrw;
-use crate::neutron::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, search_package};
+use crate::neutron::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, download_pkglist, remove_tar, search_package};
 
 mod neutron; // import Neutron API
 mod imut_api; // Immutability API
 
 fn main() {
+    neutron::download_pkglist();
+
+    install_tar("neofetch", "", false, false);
+    remove_tar("neofetch");
+
+    return;
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
 

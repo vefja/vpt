@@ -6,7 +6,7 @@ use version_compare::{Cmp, Version};
 use sqlite;
 use rand::Rng;
 use std::process::{exit, Command, ExitStatus};
-use tempdir::*;
+
 
 pub(crate) fn check_option(option: &str) -> bool {
     let output = Command::new("bash")
@@ -19,7 +19,7 @@ pub(crate) fn check_option(option: &str) -> bool {
 
     output_buffer.push_str(match str::from_utf8(&output.stdout) {
         Ok(val) => val,
-        Err(_) => panic!("got non UTF-8 data from git"),
+        Err(_) => panic!("got non UTF-8 data from find_opt.sh"),
     }); // push output to buffer
 
     output_buffer.contains("true")
@@ -161,11 +161,13 @@ pub(crate) fn add_pkg_to_db(package: &str, files: &str) {
     pkgdb
         .execute("
         CREATE TABLE if not exists packages (name TEXT, version TEXT, description TEXT, files TEXT);
-        ", );
+        ", ).unwrap();
 
-    let ver = get_pkg_version(package); // TODO: remove placeholder
+    let ver = get_pkg_version(package);
 
     let desc = get_pkg_desc(package);
+
+    println!("{} {} {}", package, ver, desc);
 
     let cmd = "INSERT INTO packages VALUES ('".to_owned()
         + package
@@ -207,10 +209,6 @@ pub(crate) fn debug_add_pkg_to_pkglist(package: &str) {
 
     pkgdb.execute("CREATE TABLE if not exists pkglist (name TEXT, version TEXT, description TEXT, files TEXT);").unwrap();
     pkgdb.execute(cmd).unwrap();
-
-    // package = the function argument
-    // version can be found
-    // Description is found like version
 }
 
 
@@ -252,14 +250,12 @@ pub(crate) fn get_package(pkg: &str, cache: bool, location: &str, tarName: &str)
     let link = "https://raw.githubusercontent.com/vefjiaw/vpt-repo/main/".to_owned() + pkg + ".tar.gz"; // add link searching
 
     let status = {
-        let download_cmd = "/usr/bin/wget ".to_owned() + &link + " --output-file " + "/tmp/vpt/" + "'" + tarName + "'" + ".tar.gz";
-
-        println!("{}", download_cmd);
-
-        Command::new(download_cmd)
+        Command::new("curl")
+            .arg(&link)// the link that is figured out previously
+            .arg("-o")
+            .arg("/tmp/vpt/".to_owned() + tarName + ".tar.gz")// name of the tar file
             .status()
             .expect("Error: Couldn't download package.")
-
     };
 
     status
@@ -275,6 +271,8 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
     let tarName = assign_random_name();
 
+    println!("{}", tarName);
+
     let temp_dir = "/tmp/vpt/".to_owned() + &assign_random_name();
 
     if !offline {
@@ -282,10 +280,11 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
         get_package(pkg, true, "", &tarName);
     }
 
-    let mut tar_file = "/tmp/vpt/".to_owned() + &tarName + ".tar.gz";
+    let tar_file = "/tmp/vpt/".to_owned() + &tarName + ".tar.gz";
+
+    fs::create_dir_all(&temp_dir).expect("Couldn't create temp directory.");
 
     println!("{}", tar_file);
-
     Command::new("tar")
         .arg("xzf")
         .arg(tar_file)
@@ -294,9 +293,9 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
         .output()
         .expect("Couldn't extract tar.gz file.");
 
-    let tmp = temp_dir;
+    println!("Files in {}:", temp_dir);
 
-    let paths = fs::read_dir(&tmp).unwrap();
+    let paths = fs::read_dir(temp_dir).unwrap();
 
     for path in paths {
         println!("Name: {}", path.unwrap().path().display())
@@ -334,7 +333,7 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 fn assign_random_name() -> String {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
                             abcdefghijklmnopqrstuvwxyz\
-                            0123456789)(*&^%$#@!~";
+                            0123456789";
     let mut rng = rand::thread_rng();
 
     let name: String = (0..10).map(|_| {
@@ -382,10 +381,11 @@ pub(crate) fn remove_tar(pkg: &str) -> i32 {
     return 0;
 }
 
-pub(crate) fn refresh_repo() {
+pub(crate) fn download_pkglist() {
     Command::new("curl")
-        .arg("--output /var/lib/vpt/pkglist")
-        .arg("https://raw.githubusercontent.com/NitrogenLinux/vpt-repo/main/pkglist")
+        .arg("--output")
+        .arg("/var/lib/vpt/packages.db")
+        .arg("https://raw.githubusercontent.com/Vefjiaw/vpt-repo/main/pkglist")
         .output()
         .expect("Couldn't download package list.");
 }
@@ -415,5 +415,6 @@ pub(crate) fn upgrade_system() -> i32 {
         .output()
         .expect("Couldn't update package list.");
 
+    // TODO: finish upgrade
     return 0;
 }
