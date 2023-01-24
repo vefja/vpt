@@ -9,15 +9,6 @@ mod neutron; // import Neutron API
 mod imut_api; // Immutability API
 
 fn main() {
-    neutron::install_tar("neofetch", "", false, false);
-
-    neutron::list_packages();
-
-    neutron::remove_tar("neofetch");
-
-    neutron::list_packages();
-    return;
-
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
 
