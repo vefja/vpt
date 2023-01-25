@@ -307,20 +307,32 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
     let bin_binpath = "/tmp/vpt".to_owned() + &dir_name + "/BINARIES" + "/bin";
 
+	let manpath = "/tmp/vpt".to_owned() + &dir_name + "/MANUALS"
+  
     if Path::new(&usr_binpath).is_dir() {
-        for patch in fs::read_dir(&usr_binpath).unwrap() {
-            let patch = patch.unwrap().path();
-            let patch = patch.to_str().unwrap();
-            println!("Installing: {}", patch);
+        for binary in fs::read_dir(&usr_binpath).unwrap() {
+            let binary = binary.unwrap().path();
+            let binary = binary.to_str().unwrap();
+        	println!("Installing: {}", binary);
+        	// TODO: move file to /usr/bin
         }
     } else if Path::new(&bin_binpath).is_dir() {
-        for patch in fs::read_dir(&bin_binpath).unwrap() {
-            let patch = patch.unwrap().path();
-            let patch = patch.to_str().unwrap();
-            println!("Installing: {}", patch);
+        for binary in fs::read_dir(&bin_binpath).unwrap() {
+            let binary = binary.unwrap().path();
+            let binary = binary.to_str().unwrap();
+            println!("Installing: {}", binary);
+          	// TODO: move file to /bin
         }
-    } // TODO: do the same for CONFIGS, BOOT, MANUALS, and LIBRARIES
+    } // TODO: do the same for CONFIGS, BOOT, and LIBRARIES
 
+	if Path::new(&manpath).is_dir() {
+    	for manual in fs::read_dir(&manpath).unwrap() {
+        	let manual = manual.unwrap().path();
+          	let manual = manual.to_str().unwrap();
+          	println!("Adding manual: {}", manual)
+        }
+    }
+  
     if !upgrade {
         add_pkg_to_db(pkg, "");
     } else {
