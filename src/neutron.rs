@@ -307,8 +307,12 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
     let bin_binpath = "/tmp/vpt".to_owned() + &dir_name + "/BINARIES" + "/bin";
 
-	let manpath = "/tmp/vpt".to_owned() + &dir_name + "/MANUALS"
-  
+	let manpath = "/tmp/vpt".to_owned() + &dir_name + "/MANUALS";
+
+	let etcpath = "/tmp/vpt".to_owned() + &dir_name + "/CONFIGS" + "/etc";
+
+    let usr_sharepath = "/tmp/vpt".to_owned() + &dir_name + "/CONFIGS" + "/usr-share";
+      
     if Path::new(&usr_binpath).is_dir() {
         for binary in fs::read_dir(&usr_binpath).unwrap() {
             let binary = binary.unwrap().path();
@@ -332,6 +336,8 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
           	println!("Adding manual: {}", manual)
         }
     }
+
+  
   
     if !upgrade {
         add_pkg_to_db(pkg, "");
