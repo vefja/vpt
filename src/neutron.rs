@@ -312,7 +312,13 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 	let etcpath = "/tmp/vpt".to_owned() + &dir_name + "/CONFIGS" + "/etc";
 
     let usr_sharepath = "/tmp/vpt".to_owned() + &dir_name + "/CONFIGS" + "/usr-share";
-      
+
+	let bootpath = "/tmp/vpt".to_owned() + &dir_name + "/BOOT";
+
+  	let libpath = "/tmp/vpt".to_owned() + &dir_name + "/LIB";
+
+  	let lib64path = "/tmp/vpt".to_owned() + &dir_name + "/LIB64";
+  
     if Path::new(&usr_binpath).is_dir() {
         for binary in fs::read_dir(&usr_binpath).unwrap() {
             let binary = binary.unwrap().path();
@@ -320,7 +326,9 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
         	println!("Installing: {}", binary);
         	// TODO: move file to /usr/bin
         }
-    } else if Path::new(&bin_binpath).is_dir() {
+    }
+  
+    if Path::new(&bin_binpath).is_dir() {
         for binary in fs::read_dir(&bin_binpath).unwrap() {
             let binary = binary.unwrap().path();
             let binary = binary.to_str().unwrap();
@@ -337,7 +345,21 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
         }
     }
 
-  
+  if Path::new(&etcpath).is_dir() {
+  	for cfg in fs::read_dir(&etcpath).unwrap() {
+    	let cfg = cfg.unwrap().path();
+      	let cfg = cfg.to_str().unwrap();
+      	println!("Adding config file: {}", cfg);
+    }
+  }
+
+ if Path::new(&etcpath).is_dir() {
+  	for cfg in fs::read_dir(&etcpath).unwrap() {
+    	let cfg = cfg.unwrap().path();
+      	let cfg = cfg.to_str().unwrap();
+      	println!("Adding config file: {}", cfg);
+    }
+  }
   
     if !upgrade {
         add_pkg_to_db(pkg, "");
