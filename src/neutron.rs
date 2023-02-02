@@ -280,6 +280,8 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
     if !offline {
         // offline install tries to install the package off the disk
         get_package(pkg, true, "", &tarName);
+    } else {
+    		  
     }
 
     let tar_file = "/tmp/vpt/".to_owned() + &tarName + ".tar.gz";
@@ -303,6 +305,8 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
         println!("Name: {}", path.unwrap().path().display())
     }
 
+  	// TODO: add paths to packages.db
+
     let usr_binpath = "/tmp/vpt".to_owned() + &dir_name + "/BINARIES" + "/usr-bin";
 
     let bin_binpath = "/tmp/vpt".to_owned() + &dir_name + "/BINARIES" + "/bin";
@@ -324,7 +328,6 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let binary = binary.unwrap().path();
             let binary = binary.to_str().unwrap();
         	println!("Installing: {}", binary);
-        	// TODO: move file to /usr/bin
         }
     }
   
@@ -333,9 +336,8 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let binary = binary.unwrap().path();
             let binary = binary.to_str().unwrap();
             println!("Installing: {}", binary);
-          	// TODO: move file to /bin
         }
-    } // TODO: do the same for CONFIGS, BOOT, and LIBRARIES
+    }
 
 	if Path::new(&manpath).is_dir() {
     	for manual in fs::read_dir(&manpath).unwrap() {
