@@ -91,10 +91,8 @@ fn main() {
                 std::process::exit(128);
             }
 
-            let path = "/etc/elements/repos/nitrogen/".to_owned() + &args_mod[i];
-            if !Path::new(&path).exists() {
-                println!("Couldn't find '{0}' in the repository.", args_mod[i]);
-                std::process::exit(256); // Error 256 for package not found
+			if vpl::get_pkg_version.is_empty() {
+            	println!("Couldn't find package {} in repository", args_mod[i])
             }
         }
     } else if command == "upgrade" || command == "up" {
@@ -114,7 +112,7 @@ fn main() {
             }
         }
 
-        neutron::upgrade_system();
+        vpl::upgrade_system();
     } else {
         println!("At least one 3 arguments are required(2 found)");
         std::process::exit(1);
@@ -186,8 +184,10 @@ fn main() {
     }
 
     let mut pkgs_done = 0;
-    
-    if imut_api::getmode() {
+
+	let OrigMode = imut_api::getmode();
+  
+    if OrigMode {
         imut_api::enterrw();
     }
     
@@ -199,7 +199,7 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if neutron::install_tar(&args_mod[pkgs_done], "", false, false) == 128 {
+            if vpl::install_tar(&args_mod[pkgs_done], "", false, false) == 128 {
                 println!("Package already installed. Skipping...");
             };
         } else if command.eq("remove") || command.eq("rm") {
@@ -209,7 +209,7 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if neutron::remove_tar(&args_mod[pkgs_done]) == 128 {
+            if vpl::remove_tar(&args_mod[pkgs_done]) == 128 {
                 println!("Package not installed. Skipping...");
             };
         } else if command.eq("upgrade") || command.eq("up") {
@@ -219,7 +219,7 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if neutron::install_tar(&args_mod[pkgs_done], "", false, true) == 128 {
+            if vpl::install_tar(&args_mod[pkgs_done], "", false, true) == 128 {
                 println!("Package not installed. Skipping...");
             };
         }
@@ -228,19 +228,13 @@ fn main() {
 
     }
 
-    // println!("{}", imut_api::enterro());
-	if imut_api::getmode() {
+	if OrigMode {
         imut_api::enterro();
     }
 }
 
 fn help(exit_code: i32) {
-    println!("usage: lmt <action> <package>");
-    println!("List of Main Commands:");
-    println!("  install: Install a package");
-    println!("  remove: Remove a package");
-    println!("  update: Update all packages");
-    println!("  search: Search for a package");
-    println!("  help: Show this help message");
+    println!("usage: vpt <action> <package>");
+    println!("Use 'man vpt' to check all available commands");
     std::process::exit(exit_code);
 }
