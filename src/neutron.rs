@@ -360,6 +360,32 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
       	println!("Adding config file: {}", cfg);
     }
   }
+
+  if Path::new(&bootpath).is_dir() {
+  	for file in fs::read_dir(&bootpath).unwrap() {
+    	let file = file.unwrap().path();
+      	let file = file.to_str().unwrap();
+      	println!("Adding boot file: {}", file)
+    }
+  }
+
+  if Path::new(&libpath) {
+  	for lib in fs::read_dir(&libpath).unwrap() {
+    	let lib = lib.unwrap().path();
+      	let lib = lib.to_str().unwrap();
+      	println("Installing library: {}", lib);
+    }	
+  }
+
+  if Path::new(&lib64path) {
+  	for lib64 in fs::read_dir(&lib64path).unwrap() {
+      let lib64 = lib64.unwrap().path();
+      let lib64 = lib.to_str().unwrap();
+      println!("Installing 64-bit library: {}", lib64)
+    } 
+  }
+
+  // TODO: actually install the files into respective directories
   
     if !upgrade {
         add_pkg_to_db(pkg, "");
