@@ -5,15 +5,15 @@ use nix::unistd::getuid;
 use crate::imut_api::enterrw;
 use crate::vpl::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, download_pkglist, remove_tar, search_package};
 
-mod vpl; // import Neutron API
+mod vpl; // import VPLIB
 mod imut_api; // Immutability API
 
 fn main() {
-    // neutron::download_pkglist();
+    // vpl::download_pkglist();
 
     // install_tar("neofetch", "", false, false);
     // remove_tar("neofetch");
-    //
+
     // return;
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
@@ -30,8 +30,8 @@ fn main() {
             || command == "search"
             || command == "se"
         {
-            if neutron::check_option("snapshots") {
-                neutron::new_snapshot("pre", &imut_args[1]);
+            if vpl::check_option("snapshots") {
+                vpl::new_snapshot("pre", &imut_args[1]);
             }
 
             if !getuid().to_string().eq("0") {
@@ -71,7 +71,7 @@ fn main() {
                 std::process::exit(512);
             }
 
-            if !neutron::check_option("remove_protected")
+            if !vpl::check_option("remove_protected")
                 && command.eq("remove")
                 && [
                 "elements",
@@ -91,7 +91,7 @@ fn main() {
                 std::process::exit(128);
             }
 
-			if vpl::get_pkg_version.is_empty() {
+			if vpl::get_pkg_version(args_mod[i].as_str()).is_empty() {
             	println!("Couldn't find package {} in repository", args_mod[i])
             }
         }
@@ -122,7 +122,7 @@ fn main() {
     args_mod.remove(0); // remove non-important arguments(will be saved in imut_args)
 
     if imut_args[2].eq("search") {
-        if neutron::search_package(&args_mod[1]) {
+        if vpl::search_package(&args_mod[1]) {
             println!(
                 "Package: {0} was found in Elements' repository.",
                 &args_mod[0]

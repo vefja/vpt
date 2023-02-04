@@ -95,7 +95,7 @@ pub(crate) fn compare_old_to_new(package: &str) -> bool {
     return !is_newer; // return if db2's version is newer than db1's
 }
 
-fn get_pkg_version(package: &str) -> String {
+pub (crate) fn get_pkg_version(package: &str) -> String {
     let mut db = sqlite::open("/var/lib/vpt/packages.db").unwrap();
 
     db.execute(
@@ -371,18 +371,18 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
     }
   }
 
-  if Path::new(&libpath) {
+  if Path::new(&libpath).is_dir() {
   	for lib in fs::read_dir(&libpath).unwrap() {
     	let lib = lib.unwrap().path();
       	let lib = lib.to_str().unwrap();
-      	println("Installing library: {}", lib);
+      	println!("Installing library: {}", lib);
     }	
   }
 
-  if Path::new(&lib64path) {
+  if Path::new(&lib64path).is_dir() {
   	for lib64 in fs::read_dir(&lib64path).unwrap() {
       let lib64 = lib64.unwrap().path();
-      let lib64 = lib.to_str().unwrap();
+      let lib64 = lib64.to_str().unwrap();
       println!("Installing 64-bit library: {}", lib64)
     } 
   }
