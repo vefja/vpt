@@ -1,5 +1,5 @@
 use std::{env, io};
-use std::path::Path;
+
 use std::io::{stdout, Write};
 use nix::unistd::getuid;
 use crate::imut_api::enterrw;
@@ -10,10 +10,18 @@ mod imut_api; // Immutability API
 
 fn main() {
     // vpl::download_pkglist();
-
+    //
     // install_tar("neofetch", "", false, false);
+    //
     // remove_tar("neofetch");
-
+    //
+    //
+    // if list_packages().contains("neofetch") {
+    //     println!("Package was not removed");
+    // } else {
+    //     println!("Package was removed");
+    // }
+    //
     // return;
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
@@ -122,7 +130,7 @@ fn main() {
     args_mod.remove(0); // remove non-important arguments(will be saved in imut_args)
 
     if imut_args[2].eq("search") {
-        if vpl::search_package(&args_mod[1]) {
+        if search_package(&args_mod[1]) {
             println!(
                 "Package: {0} was found in Elements' repository.",
                 &args_mod[0]
@@ -165,7 +173,7 @@ fn main() {
 
     while in_prompt {
         print!("Continue? [Y/n] ");
-        io::stdout().flush().unwrap(); // flush stdout
+        stdout().flush().unwrap(); // flush stdout
 
         let mut input = String::new(); // answer to the "Continue?" prompt
         io::stdin().read_line(&mut input).unwrap(); // take input
@@ -185,10 +193,10 @@ fn main() {
 
     let mut pkgs_done = 0;
 
-	let OrigMode = imut_api::getmode();
+	let orig_mode = imut_api::getmode();
   
-    if OrigMode {
-        imut_api::enterrw();
+    if orig_mode {
+        enterrw();
     }
     
     while pkgs_done < args_mod.len() {
@@ -199,7 +207,7 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if vpl::install_tar(&args_mod[pkgs_done], "", false, false) == 128 {
+            if install_tar(&args_mod[pkgs_done], "", false, false) == 128 {
                 println!("Package already installed. Skipping...");
             };
         } else if command.eq("remove") || command.eq("rm") {
@@ -209,7 +217,7 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if vpl::remove_tar(&args_mod[pkgs_done]) == 128 {
+            if remove_tar(&args_mod[pkgs_done]) == 128 {
                 println!("Package not installed. Skipping...");
             };
         } else if command.eq("upgrade") || command.eq("up") {
@@ -219,7 +227,7 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if vpl::install_tar(&args_mod[pkgs_done], "", false, true) == 128 {
+            if install_tar(&args_mod[pkgs_done], "", false, true) == 128 {
                 println!("Package not installed. Skipping...");
             };
         }
@@ -228,7 +236,7 @@ fn main() {
 
     }
 
-	if OrigMode {
+	if orig_mode {
         imut_api::enterro();
     }
 }

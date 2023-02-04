@@ -95,7 +95,7 @@ pub(crate) fn compare_old_to_new(package: &str) -> bool {
     return !is_newer; // return if db2's version is newer than db1's
 }
 
-pub (crate) fn get_pkg_version(package: &str) -> String {
+pub(crate) fn get_pkg_version(package: &str) -> String {
     let mut db = sqlite::open("/var/lib/vpt/packages.db").unwrap();
 
     db.execute(
@@ -153,7 +153,7 @@ fn get_pkg_desc(package: &str) -> String {
     description
 }
 
-pub(crate) fn add_pkg_to_db(package: &str, files: &str) {
+pub(crate) fn add_pkg_to_db(package: &str, files: String) {
     if !db_lock() { return; }; // check if database is locked
 
     let pkgdb = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
@@ -167,7 +167,7 @@ pub(crate) fn add_pkg_to_db(package: &str, files: &str) {
 
     let desc = get_pkg_desc(package);
 
-    println!("{} {} {}", package, ver, desc);
+
 
     let cmd = "INSERT INTO packages VALUES ('".to_owned()
         + package
@@ -176,16 +176,10 @@ pub(crate) fn add_pkg_to_db(package: &str, files: &str) {
         + "', '"
         + &desc
         + "', '"
-        + files
+        + &files
         + "');";
 
-    println!("{}", cmd);
-
     pkgdb.execute(cmd).unwrap();
-
-    // package = the function argument
-    // version can be found
-    // Description is found like version
 
     fs::remove_file("/var/lib/vpt/local/packages.db.lock").unwrap();
 }
@@ -271,7 +265,6 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
     let tarName = assign_random_name();
 
-    println!("{}", tarName);
 
     let dir_name = assign_random_name();
 
@@ -280,15 +273,12 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
     if !offline {
         // offline install tries to install the package off the disk
         get_package(pkg, true, "", &tarName);
-    } else {
-    		  
-    }
+    } else {}
 
     let tar_file = "/tmp/vpt/".to_owned() + &tarName + ".tar.gz";
 
     fs::create_dir_all(&temp_dir).expect("Couldn't create temp directory.");
 
-    println!("{}", tar_file);
     Command::new("tar")
         .arg("xzf")
         .arg(tar_file)
@@ -297,100 +287,119 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
         .output()
         .expect("Couldn't extract tar.gz file.");
 
-    println!("Files in {}:", temp_dir);
+    let usr_binpath = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/usr-bin";
 
-    let paths = fs::read_dir(temp_dir).unwrap();
+    let bin_binpath = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/bin";
 
-    for path in paths {
-        println!("Name: {}", path.unwrap().path().display())
-    }
+    let manpath = "/tmp/vpt/".to_owned() + &dir_name + "/MANUALS";
 
-  	// TODO: add paths to packages.db
+    let etcpath = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/etc";
 
-    let usr_binpath = "/tmp/vpt".to_owned() + &dir_name + "/BINARIES" + "/usr-bin";
+    let usr_sharepath = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/usr-share";
 
-    let bin_binpath = "/tmp/vpt".to_owned() + &dir_name + "/BINARIES" + "/bin";
+    let bootpath = "/tmp/vpt/".to_owned() + &dir_name + "/BOOT";
 
-	let manpath = "/tmp/vpt".to_owned() + &dir_name + "/MANUALS";
+    let libpath = "/tmp/vpt/".to_owned() + &dir_name + "/LIB";
 
-	let etcpath = "/tmp/vpt".to_owned() + &dir_name + "/CONFIGS" + "/etc";
+    let lib64path = "/tmp/vpt/".to_owned() + &dir_name + "/LIB64";
 
-    let usr_sharepath = "/tmp/vpt".to_owned() + &dir_name + "/CONFIGS" + "/usr-share";
+    let mut files = String::new();
 
-	let bootpath = "/tmp/vpt".to_owned() + &dir_name + "/BOOT";
-
-  	let libpath = "/tmp/vpt".to_owned() + &dir_name + "/LIB";
-
-  	let lib64path = "/tmp/vpt".to_owned() + &dir_name + "/LIB64";
-  
     if Path::new(&usr_binpath).is_dir() {
         for binary in fs::read_dir(&usr_binpath).unwrap() {
             let binary = binary.unwrap().path();
             let binary = binary.to_str().unwrap();
-        	println!("Installing: {}", binary);
+
+            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/usr-bin/";
+
+            files = files + "/usr/bin/" + &*binary.replace(&actual_path, "") + " ";
         }
     }
-  
+
     if Path::new(&bin_binpath).is_dir() {
         for binary in fs::read_dir(&bin_binpath).unwrap() {
             let binary = binary.unwrap().path();
             let binary = binary.to_str().unwrap();
-            println!("Installing: {}", binary);
+
+            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/bin/";
+
+            files = files + "/bin/" + &*binary.replace(&actual_path, "") + " ";
         }
     }
 
-	if Path::new(&manpath).is_dir() {
-    	for manual in fs::read_dir(&manpath).unwrap() {
-        	let manual = manual.unwrap().path();
-          	let manual = manual.to_str().unwrap();
-          	println!("Adding manual: {}", manual)
+    if Path::new(&manpath).is_dir() {
+        for manual in fs::read_dir(&manpath).unwrap() {
+            let manual = manual.unwrap().path();
+            let manual = manual.to_str().unwrap();
+
+            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/MANUALS";
+
+            files = files + "/usr/share/man/man1" + &*manual.replace(&actual_path, "") + " ";
         }
     }
 
-  if Path::new(&etcpath).is_dir() {
-  	for cfg in fs::read_dir(&etcpath).unwrap() {
-    	let cfg = cfg.unwrap().path();
-      	let cfg = cfg.to_str().unwrap();
-      	println!("Adding config file: {}", cfg);
+    if Path::new(&etcpath).is_dir() {
+        for cfg in fs::read_dir(&etcpath).unwrap() {
+            let cfg = cfg.unwrap().path();
+            let cfg = cfg.to_str().unwrap();
+
+            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/etc";
+
+            files = files + "/etc" + &*cfg.replace(&actual_path, "") + " ";
+
+        }
     }
-  }
 
- if Path::new(&etcpath).is_dir() {
-  	for cfg in fs::read_dir(&etcpath).unwrap() {
-    	let cfg = cfg.unwrap().path();
-      	let cfg = cfg.to_str().unwrap();
-      	println!("Adding config file: {}", cfg);
+    if Path::new(&usr_sharepath).is_dir() {
+        for cfg in fs::read_dir(&etcpath).unwrap() {
+            let cfg = cfg.unwrap().path();
+            let cfg = cfg.to_str().unwrap();
+
+            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/usr-share";
+
+            files = files + "/usr/share" + &*cfg.replace(&actual_path, "") + " ";
+        }
     }
-  }
 
-  if Path::new(&bootpath).is_dir() {
-  	for file in fs::read_dir(&bootpath).unwrap() {
-    	let file = file.unwrap().path();
-      	let file = file.to_str().unwrap();
-      	println!("Adding boot file: {}", file)
+    if Path::new(&bootpath).is_dir() {
+        for file in fs::read_dir(&bootpath).unwrap() {
+            let file = file.unwrap().path();
+            let file = file.to_str().unwrap();
+
+            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/BOOT";
+
+            files = files + "/boot" + &*file.replace(&actual_path, "") + " ";
+        }
     }
-  }
 
-  if Path::new(&libpath).is_dir() {
-  	for lib in fs::read_dir(&libpath).unwrap() {
-    	let lib = lib.unwrap().path();
-      	let lib = lib.to_str().unwrap();
-      	println!("Installing library: {}", lib);
-    }	
-  }
+    if Path::new(&libpath).is_dir() {
+        for lib in fs::read_dir(&libpath).unwrap() {
+            let lib = lib.unwrap().path();
+            let lib = lib.to_str().unwrap();
 
-  if Path::new(&lib64path).is_dir() {
-  	for lib64 in fs::read_dir(&lib64path).unwrap() {
-      let lib64 = lib64.unwrap().path();
-      let lib64 = lib64.to_str().unwrap();
-      println!("Installing 64-bit library: {}", lib64)
-    } 
-  }
+            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib";
 
-  // TODO: actually install the files into respective directories
-  
+            files = files + "/usr/lib" + &*lib.replace(&actual_path, "") + " ";
+        }
+    }
+
+    if Path::new(&lib64path).is_dir() {
+        for lib64 in fs::read_dir(&lib64path).unwrap() {
+            let lib64 = lib64.unwrap().path();
+            let lib64 = lib64.to_str().unwrap();
+
+            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib64";
+
+            files = files + "/usr/lib64" + &*lib64.replace(&actual_path, "") + " ";
+        }
+    }
+
+    println!("Files: {}", files);
+
+    // TODO: actually install the files into respective directories
+
     if !upgrade {
-        add_pkg_to_db(pkg, "");
+        add_pkg_to_db(pkg, files);
     } else {
         let pkgdb = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
         pkgdb
@@ -466,6 +475,15 @@ pub(crate) fn remove_tar(pkg: &str) -> i32 {
 
     println!("{:?}", all_files);
 
+    if db_lock() {
+        let cmd = "DELETE FROM packages WHERE name = '".to_owned() + pkg + "';";
+        db.execute(cmd).unwrap();
+        fs::remove_file("/var/lib/vpt/local/packages.db.lock");
+    } else {
+        println!("Couldn't lock database.");
+        return 1;
+    }
+
     return 0;
 }
 
@@ -478,7 +496,7 @@ pub(crate) fn download_pkglist() {
         .expect("Couldn't download package list.");
 }
 
-pub(crate) fn list_packages() {
+pub(crate) fn list_packages() -> String {
     let db = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
     let mut packages = String::new();
 
@@ -489,11 +507,13 @@ pub(crate) fn list_packages() {
     db.iterate("SELECT name FROM packages", |pairs| {
         for &(column, value) in pairs.iter() {
             if column == "name" {
-                packages = packages.to_owned() + &value.unwrap().to_string();
+                packages = packages.to_owned() + " " + &value.unwrap().to_string();
             }
         }
         true
     }).unwrap();
+
+    return packages;
 }
 
 pub(crate) fn upgrade_system() -> i32 {
