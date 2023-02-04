@@ -1,3 +1,0 @@
-# VPT
-
-Vefjiaw Package Tool
