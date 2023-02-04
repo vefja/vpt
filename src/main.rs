@@ -9,20 +9,20 @@ mod vpl; // import VPLIB
 mod imut_api; // Immutability API
 
 fn main() {
-    vpl::download_pkglist();
-
-    install_tar("neofetch", "", false, false);
-
+    // vpl::download_pkglist();
+    //
+    // install_tar("neofetch", "", false, false);
+    //
     // remove_tar("neofetch");
-
-
-    if list_packages().contains("neofetch") {
-        println!("Package was not removed");
-    } else {
-        println!("Package was removed");
-    }
-
-    return;
+    //
+    //
+    // if list_packages().contains("neofetch") {
+    //     println!("Package was not removed");
+    // } else {
+    //     println!("Package was removed");
+    // }
+    //
+    // return;
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
 
