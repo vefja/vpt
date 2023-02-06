@@ -25,9 +25,9 @@ pub(crate) fn check_option(option: &str) -> bool {
     output_buffer.contains("true")*/
 	// base command
   	// cat /etc/vpt/vpt.conf | grep ${1} | sed 's/'${1}'=//'
-	let cmd = "cat /etc/vpt/vpt.conf | grep " + option + " | sed 's/" + option + "=//";
+	let cmd = "cat /etc/vpt/vpt.conf | grep ".to_owned() + option + " | sed 's/" + option + "=//";
 
-  	println!("", cmd);
+  	println!("{}", cmd);
 
   	return true;
 }
