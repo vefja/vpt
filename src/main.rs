@@ -9,6 +9,8 @@ mod vpl; // import VPLIB
 mod imut_api; // Immutability API
 
 fn main() {
+	vpl::check_option("test");
+  
     // vpl::download_pkglist();
     //
     // install_tar("neofetch", "", false, false);
@@ -23,6 +25,8 @@ fn main() {
     // }
     //
     // return;
+	
+  
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
 
