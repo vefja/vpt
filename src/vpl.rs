@@ -28,6 +28,8 @@ pub(crate) fn check_option(option: &str) -> bool {
 	let cmd = "cat /etc/vpt/vpt.conf | grep " + option + " | sed 's/" + option + "=//";
 
   	println!("", cmd);
+
+  	return true;
 }
 
 pub(crate) fn compare_old_to_new(package: &str) -> bool {
