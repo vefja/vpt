@@ -9,7 +9,7 @@ use std::process::{exit, Command, ExitStatus};
 
 
 pub(crate) fn check_option(option: &str) -> bool {
-    let output = Command::new("bash")
+    /*let output = Command::new("bash")
         .arg("/etc/vpt/tools/find_opt.sh") // run find_opt.sh tool
         .arg(option) // add option to script
         .output() // take output of find_opt.sh
@@ -22,7 +22,12 @@ pub(crate) fn check_option(option: &str) -> bool {
         Err(_) => panic!("got non UTF-8 data from find_opt.sh"),
     }); // push output to buffer
 
-    output_buffer.contains("true")
+    output_buffer.contains("true")*/
+	// base command
+  	// cat /etc/vpt/vpt.conf | grep ${1} | sed 's/'${1}'=//'
+	let cmd = "cat /etc/vpt/vpt.conf | grep " + option + " | sed 's/" + option + "=//";
+
+  	println!("", cmd);
 }
 
 pub(crate) fn compare_old_to_new(package: &str) -> bool {
