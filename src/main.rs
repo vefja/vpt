@@ -82,14 +82,14 @@ fn main() {
             if !vpl::check_option("remove_protected")
                 && command.eq("remove")
                 && [
-                "elements",
+                "vpt",
                 "gnome-core",
                 "gnome",
                 "linux",
                 "xbps",
                 "mutter",
                 "kernel",
-            ] // kernel - nitrogen os's kernel
+            ] // kernel - Vefjiaw OS's kernel
                 .contains(&&*args_mod[i])
             {
                 println!(
@@ -130,14 +130,15 @@ fn main() {
     args_mod.remove(0); // remove non-important arguments(will be saved in imut_args)
 
     if imut_args[2].eq("search") {
-        if search_package(&args_mod[1]) {
+        if search_package(&args_mod[0]) {
             println!(
-                "Package: {0} was found in Elements' repository.",
-                &args_mod[0]
+                "{0}-{1}",
+                &args_mod[0],
+              	vpl::get_pkg_version(&args_mod[0])
             );
-            println!("Use 'lmt install {0}' to install it.", &args_mod[0])
+            println!("Use 'vpt install {0}' to install it.", &args_mod[0])
         } else {
-            println!("Couldn't find '{0}' .", &args_mod[0])
+            println!("Error: '{0}': No package found.", &args_mod[0])
         }
     }
 
@@ -172,7 +173,7 @@ fn main() {
     let mut in_prompt = true;
 
     while in_prompt {
-        print!("Continue? [Y/n] ");
+        print!("[Y/n] ");
         stdout().flush().unwrap(); // flush stdout
 
         let mut input = String::new(); // answer to the "Continue?" prompt
