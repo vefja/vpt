@@ -64,7 +64,7 @@ fn main() {
         for i in 2..args_mod.len() {
             if args_mod[i].is_empty() {
                 // Throw error if "" is passed as argument
-                println!("Error: Unknown error.");
+                println!("Error: I'm out, you're on your own");
                 std::process::exit(512); // Error 512 for invalid arguments
             }
 
@@ -106,7 +106,7 @@ fn main() {
     } else if command == "upgrade" || command == "up" {
         let mut prompt = true;
         while prompt {
-            print!("Are you sure you want to upgrade all packages? [Y/n] ");
+            print!("[Y/n] ");
             stdout().flush().unwrap();
             let mut input = String::new();
             io::stdin().read_line(&mut input).unwrap();
@@ -122,7 +122,7 @@ fn main() {
 
         vpl::upgrade_system();
     } else {
-        println!("At least one 3 arguments are required(2 found)");
+        println!("At least 3 arguments are required(2 found)");
         std::process::exit(1);
     }
 
@@ -145,7 +145,7 @@ fn main() {
     args_mod.dedup(); // remove duplicates
 
     if command.eq("install") || command.eq("in") && args_mod.len() == 1 {
-        println!("Installing {0:?}", args_mod.join(" "));
+        println!("Installing: {0:?}", args_mod.join(" "));
     } else if command.eq("remove") || command.eq("rm") && args_mod.len() == 1 {
         println!("Removing: {0:?}", args_mod.join(" "));
     } else if command.eq("upgrade") || command.eq("up") && args_mod.len() == 1 {
@@ -154,19 +154,19 @@ fn main() {
         println!(
             "Installing {0} packages: {1:?}",
             args_mod.len(),
-            args_mod.join(" ")
+            args_mod.join("\n")
         );
     } else if command.eq("remove") || command.eq("rm") && args_mod.len() != 1 {
         println!(
             "Removing {0} packages: {1:?}",
             args_mod.len(),
-            args_mod.join(" ")
+            args_mod.join("\n")
         );
     } else if command.eq("upgrade") || command.eq("up") && args_mod.len() != 1 {
         println!(
             "Upgrading {0} packages: {1:?}",
             args_mod.len(),
-            args_mod.join(" ")
+            args_mod.join("\n")
         );
     }
 
@@ -182,11 +182,11 @@ fn main() {
 
         if input.eq("n\n") || input.eq("no\n") {
             // if answer is "n" or "no"
-            println!("Aborting.");
+            println!("Aborting...");
             std::process::exit(0);
         } else if !input.eq("y\n") && !input.eq("yes\n") && !input.eq("\n") {
             // if answer is neither "y" nor "yes" nor nothing
-            println!("Input Error: Unknown answer.")
+            println!("Input Error: Invalid answer.")
         } else {
             in_prompt = false;
         }
