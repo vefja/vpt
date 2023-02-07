@@ -1,2 +1,2 @@
 [build]
-rustflags=["-Os", "-march=x86-64-v2", "-mtune=generic"]
+rustflags=["-O3", "-march=x86-64-v2", "-mtune=generic"]
