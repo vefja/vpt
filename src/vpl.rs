@@ -9,27 +9,20 @@ use std::process::{exit, Command, ExitStatus};
 
 
 pub(crate) fn check_option(option: &str) -> bool {
-    /*let output = Command::new("bash")
-        .arg("/etc/vpt/tools/find_opt.sh") // run find_opt.sh tool
-        .arg(option) // add option to script
-        .output() // take output of find_opt.sh
-        .expect("Couldn't execute find_opt.sh"); // error
+    let cfg = fs::read_to_string("/etc/vpt/vpt.conf").unwrap();
+    let cfg = cfg.split_whitespace();
 
-    let mut output_buffer = String::new(); // create buffer for output
+    let opt1 = format!("{}=true", option); let opt2 = format!("{} =false", option);
 
-    output_buffer.push_str(match str::from_utf8(&output.stdout) {
-        Ok(val) => val,
-        Err(_) => panic!("got non UTF-8 data from find_opt.sh"),
-    }); // push output to buffer
+    for line in cfg {
+        if line.eq(&opt1) || line.eq(&opt2) {
+            let mut line = line.split('=');
+            line.next();
+            return line.next().unwrap().contains("true");
+        }
+    }
 
-    output_buffer.contains("true")*/
-	// base command
-  	// cat /etc/vpt/vpt.conf | grep ${1} | sed 's/'${1}'=//'
-	let cmd = "cat /etc/vpt/vpt.conf | grep ".to_owned() + option + " | sed 's/" + option + "=//'";
-
-  	println!("{}", cmd);
-
-  	return true;
+    return false;
 }
 
 pub(crate) fn compare_old_to_new(package: &str) -> bool {
@@ -317,9 +310,13 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let binary = binary.unwrap().path();
             let binary = binary.to_str().unwrap();
 
-            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/usr-bin/";
+            let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/usr-bin/";
 
-            files = files + "/usr/bin/" + &*binary.replace(&actual_path, "") + " ";
+            let installed_path = "/usr/bin/".to_owned() + &*binary.replace(&real_path, "");
+
+            files = files + &installed_path + " ";
+
+            fs::copy(binary, installed_path).unwrap();
         }
     }
 
@@ -328,9 +325,13 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let binary = binary.unwrap().path();
             let binary = binary.to_str().unwrap();
 
-            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/bin/";
+            let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/bin/";
 
-            files = files + "/bin/" + &*binary.replace(&actual_path, "") + " ";
+            let installed_path = "/bin/".to_owned() + &*binary.replace(&real_path, "");
+
+            files = files + &installed_path + " ";
+
+            fs::copy(binary, installed_path).unwrap();
         }
     }
 
@@ -339,9 +340,13 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let manual = manual.unwrap().path();
             let manual = manual.to_str().unwrap();
 
-            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/MANUALS";
+            let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/MANUALS";
 
-            files = files + "/usr/share/man/man1" + &*manual.replace(&actual_path, "") + " ";
+            let installed_path = "/usr/share/man/man1/".to_owned() + &*manual.replace(&real_path, "");
+
+            files = files + &installed_path + " ";
+
+            fs::copy(manual, installed_path).unwrap();
         }
     }
 
@@ -350,10 +355,13 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let cfg = cfg.unwrap().path();
             let cfg = cfg.to_str().unwrap();
 
-            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/etc";
+            let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/etc";
 
-            files = files + "/etc" + &*cfg.replace(&actual_path, "") + " ";
+            let installed_path = "/etc/".to_owned() + &*cfg.replace(&real_path, "");
 
+            files = files + &installed_path + " ";
+
+            fs::copy(cfg, installed_path).unwrap();
         }
     }
 
@@ -362,9 +370,13 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let cfg = cfg.unwrap().path();
             let cfg = cfg.to_str().unwrap();
 
-            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/usr-share";
+            let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/usr-share";
 
-            files = files + "/usr/share" + &*cfg.replace(&actual_path, "") + " ";
+            let installed_path = "/usr/share/".to_owned() + &*cfg.replace(&real_path, "");
+
+            files = files + &installed_path + " ";
+
+            fs::copy(cfg, installed_path).unwrap();
         }
     }
 
@@ -373,9 +385,13 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let file = file.unwrap().path();
             let file = file.to_str().unwrap();
 
-            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/BOOT";
+            let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/BOOT";
 
-            files = files + "/boot" + &*file.replace(&actual_path, "") + " ";
+            let installed_path = "/boot/".to_owned() + &*file.replace(&real_path, "");
+
+            files = files + &installed_path + " ";
+
+            fs::copy(file, installed_path).unwrap();
         }
     }
 
@@ -384,9 +400,13 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let lib = lib.unwrap().path();
             let lib = lib.to_str().unwrap();
 
-            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib";
+            let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib";
 
-            files = files + "/usr/lib" + &*lib.replace(&actual_path, "") + " ";
+            let installed_path = "/usr/lib/".to_owned() + &*lib.replace(&real_path, "");
+
+            files = files + &installed_path + " ";
+
+            fs::copy(lib, installed_path).unwrap();
         }
     }
 
@@ -395,15 +415,15 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let lib64 = lib64.unwrap().path();
             let lib64 = lib64.to_str().unwrap();
 
-            let actual_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib64";
+            let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib64";
 
-            files = files + "/usr/lib64" + &*lib64.replace(&actual_path, "") + " ";
+            let installed_path = "/usr/lib64/".to_owned() + &*lib64.replace(&real_path, "");
+
+            files = files + &installed_path + " ";
+
+            fs::copy(lib64, installed_path).unwrap();
         }
     }
-
-    println!("Files: {}", files);
-
-    // TODO: actually install the files into respective directories
 
     if !upgrade {
         add_pkg_to_db(pkg, files);
