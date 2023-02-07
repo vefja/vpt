@@ -1,20 +1,15 @@
 use std::{env, io};
-
 use std::io::{stdout, Write};
 use nix::unistd::getuid;
+use colour::{red_ln, green_ln};
+use indicatif::{ProgressBar, ProgressStyle};
 use crate::imut_api::enterrw;
-use crate::vpl::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, download_pkglist, remove_tar, search_package, upgrade_system};
+use crate::vpl::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, download_pkglist, remove_tar, search_package, upgrade_system, get_pkg_version};
 
 mod vpl; // import VPLIB
 mod imut_api; // Immutability API
 
 fn main() {
-    debug_add_pkg_to_pkglist("neofetch");
-
-    upgrade_system();
-
-    return;
-
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
 
@@ -46,7 +41,7 @@ fn main() {
             std::process::exit(1);
         }
     } else {
-        println!("At least one 2 arguments are required(1 found)");
+        red_ln!("Error: At least one 2 arguments are required(1 found)");
         std::process::exit(0);
     }
 
@@ -56,19 +51,24 @@ fn main() {
         for i in 2..args_mod.len() {
             if args_mod[i].is_empty() {
                 // Throw error if "" is passed as argument
-                println!("Error: I'm out, you're on your own");
+                red_ln!("Error: I'm out, you're on your own");
                 std::process::exit(512); // Error 512 for invalid arguments
             }
 
             if args_mod[i].contains(' ') {
                 // Throw error if package name contains space
-                println!("Error: Package name cannot be empty.");
+                red_ln!("Error: Package name cannot be empty.");
                 std::process::exit(512);
             }
 
             if args_mod[i].contains('.') || args_mod[i].contains('/') {
-                println!("Error: Package name cannot contain '{}'", args_mod[i]);
+                red_ln!("Error: Package name cannot contain '{}'", args_mod[i]);
                 std::process::exit(512);
+            }
+
+            if get_pkg_version(args_mod[i].as_str()).is_empty() {
+                red_ln!("Error: Package '{}' not found in repository", args_mod[i]);
+                std::process::exit(1);
             }
 
             if !vpl::check_option("remove_protected")
@@ -114,7 +114,7 @@ fn main() {
 
         vpl::upgrade_system();
     } else {
-        println!("At least 3 arguments are required(2 found)");
+        red_ln!("At least 3 arguments are required(2 found)");
         std::process::exit(1);
     }
 
@@ -130,7 +130,7 @@ fn main() {
             );
             println!("Use 'vpt install {0}' to install it.", &args_mod[0])
         } else {
-            println!("Error: '{0}': No package found.", &args_mod[0])
+            red_ln!("Error: '{0}': No package found.", &args_mod[0])
         }
     }
 
@@ -178,7 +178,7 @@ fn main() {
             std::process::exit(0);
         } else if !input.eq("y\n") && !input.eq("yes\n") && !input.eq("\n") {
             // if answer is neither "y" nor "yes" nor nothing
-            println!("Input Error: Invalid answer.")
+            red_ln!("Input Error: Invalid answer.")
         } else {
             in_prompt = false;
         }
@@ -191,18 +191,33 @@ fn main() {
     if orig_mode {
         enterrw();
     }
-    
+
+    let progress = ProgressBar::new(args_mod.len() as u64);
+
     while pkgs_done < args_mod.len() {
+        progress.set_position(pkgs_done as u64);
         if command.eq("install") || command.eq("in") {
-            println!(
-                "Install package: {0} {1}/{2}",
-                &args_mod[pkgs_done],
-                pkgs_done + 1,
-                args_mod.len()
-            );
-            if install_tar(&args_mod[pkgs_done], "", false, false) == 128 {
-                println!("Package already installed. Skipping...");
-            };
+            let binding = list_packages();
+
+            let tmp = binding.split(' ');
+
+            let all_pkgs: Vec<_> = tmp.collect();
+
+            println!("{}", all_pkgs.join(" "));
+
+            for i in 0..all_pkgs.len() - 1 {
+                println!("{}", i);
+                if all_pkgs[i] == &args_mod[pkgs_done] {
+                    println!(
+                        "Package {0} is already installed. Skipping...",
+                        &args_mod[pkgs_done]
+                    );
+                    pkgs_done += 1;
+                    continue;
+                }
+            }
+
+            install_tar(&args_mod[pkgs_done], "", false, false);
         } else if command.eq("remove") || command.eq("rm") {
             println!(
                 "Removing package: {0} {1}/{2}",
@@ -226,7 +241,6 @@ fn main() {
         }
 
         pkgs_done += 1;
-
     }
 
 	if orig_mode {

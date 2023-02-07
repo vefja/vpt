@@ -4,6 +4,7 @@ use std::io::prelude::*;
 use std::{env, fs, io, str};
 use version_compare::{Cmp, Version};
 use sqlite;
+use colour::*;
 use rand::Rng;
 use std::process::{exit, Command, ExitStatus};
 
@@ -79,11 +80,11 @@ pub(crate) fn compare_old_to_new(package: &str) -> bool {
     })
         .unwrap();
 
-    println!("{0} {1}", oldver, newver);
-
     let oldver = Version::from(&oldver).unwrap();
 
     let newver = Version::from(&newver).unwrap();
+
+    println!("Current: {0} \n Newest: {1}", oldver, newver);
 
     let mut is_newer = false;
 
@@ -259,7 +260,7 @@ pub(crate) fn get_package(pkg: &str, cache: bool, location: &str, tarName: &str)
 pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
     // return i32 for error codes; 0 - good
     if !root.is_empty() && !Path::new(root).exists() {
-        println!("Error: Cannot install to: {}: No such directory.", root);
+        red_ln!("Error: Cannot install to: {}: No such directory.", root);
     } else if !root.is_empty() {
         // TODO: add ability to install to a different root directory
     }
@@ -364,7 +365,7 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             if Path::new(&installed_path).exists() {
                 if resolve_conflict(&installed_path) == 2 {
-                    println!("Error: File Conflict: Cannot continue");
+                    red_ln!("Error: File Conflict: Cannot continue");
                     exit(128);
                 } else {
                     fs::copy(cfg, installed_path).unwrap();
@@ -386,7 +387,7 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             if Path::new(&installed_path).exists() {
                 if resolve_conflict(&installed_path) == 2 {
-                    println!("Error: File Conflict: Cannot continue");
+                    red_ln!("Error: File Conflict: Cannot continue");
                     exit(128);
                 } else {
                     fs::copy(cfg, installed_path).unwrap();
@@ -589,6 +590,24 @@ pub(crate) fn upgrade_system() -> i32 {
     let pkg_to_upgrade = words_count::count_separately(&binding);
 
     println!("{}", list_packages());
+
+    let binding = list_packages();
+
+    let tmp = binding.split(' ');
+
+    let mut all_pkgs: Vec<_> = tmp.collect();
+
+    all_pkgs.remove(0);
+
+    println!("{:?}", all_pkgs);
+
+    for i in all_pkgs.iter() {
+        println!("{}", compare_old_to_new(i));
+
+        if !compare_old_to_new(i) {
+            install_tar(i, "", false, true);
+        }
+    }
 
     return 0;
 }
