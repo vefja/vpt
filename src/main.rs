@@ -3,27 +3,18 @@ use std::{env, io};
 use std::io::{stdout, Write};
 use nix::unistd::getuid;
 use crate::imut_api::enterrw;
-use crate::vpl::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, download_pkglist, remove_tar, search_package};
+use crate::vpl::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, download_pkglist, remove_tar, search_package, upgrade_system};
 
 mod vpl; // import VPLIB
 mod imut_api; // Immutability API
 
 fn main() {
-    vpl::download_pkglist();
+    debug_add_pkg_to_pkglist("neofetch");
 
-    install_tar("neofetch", "", false, false);
-
-    remove_tar("neofetch");
-    
-    // if list_packages().contains("neofetch") {
-    //     println!("Package was not removed");
-    // } else {
-    //     println!("Package was removed");
-    // }
+    upgrade_system();
 
     return;
-	
-  
+
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
 
@@ -56,7 +47,7 @@ fn main() {
         }
     } else {
         println!("At least one 2 arguments are required(1 found)");
-        std::process::exit(1);
+        std::process::exit(0);
     }
 
     let command = &imut_args[1].to_lowercase(); // redeclare in main

@@ -12,7 +12,8 @@ pub(crate) fn check_option(option: &str) -> bool {
     let cfg = fs::read_to_string("/etc/vpt/vpt.conf").unwrap();
     let cfg = cfg.split_whitespace();
 
-    let opt1 = format!("{}=true", option); let opt2 = format!("{} =false", option);
+    let opt1 = format!("{}=true", option);
+    let opt2 = format!("{} =false", option);
 
     for line in cfg {
         if line.eq(&opt1) || line.eq(&opt2) {
@@ -168,7 +169,6 @@ pub(crate) fn add_pkg_to_db(package: &str, files: String) {
     let desc = get_pkg_desc(package);
 
 
-
     let cmd = "INSERT INTO packages VALUES ('".to_owned()
         + package
         + "', '"
@@ -197,7 +197,8 @@ pub(crate) fn debug_add_pkg_to_pkglist(package: &str) {
         + &*ver.to_string()
         + "', '"
         + desc
-        + "');";
+        + "', '"
+        + "')";
 
     println!("{}", cmd);
 
@@ -361,7 +362,14 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             files = files + &installed_path + " ";
 
-            fs::copy(cfg, installed_path).unwrap();
+            if Path::new(&installed_path).exists() {
+                if resolve_conflict(&installed_path) == 2 {
+                    println!("Error: File Conflict: Cannot continue");
+                    exit(128);
+                } else {
+                    fs::copy(cfg, installed_path).unwrap();
+                }
+            }
         }
     }
 
@@ -376,7 +384,14 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             files = files + &installed_path + " ";
 
-            fs::copy(cfg, installed_path).unwrap();
+            if Path::new(&installed_path).exists() {
+                if resolve_conflict(&installed_path) == 2 {
+                    println!("Error: File Conflict: Cannot continue");
+                    exit(128);
+                } else {
+                    fs::copy(cfg, installed_path).unwrap();
+                }
+            }
         }
     }
 
@@ -452,6 +467,30 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
     }
 
     return 0;
+}
+
+fn resolve_conflict(conflict: &str) -> i32 {
+    println!("File {} already exists", conflict);
+    println!("1) Overwrite file");
+    println!("2) Skip file");
+    println!("3) Do nothing and abort");
+
+    let mut choice = String::new();
+    io::stdin().read_line(&mut choice).unwrap();
+
+    let choice: i32 = choice.trim().parse().unwrap();
+
+    if choice == 1 {
+        fs::remove_file(conflict).unwrap();
+        return 0;
+    } else if choice == 2 {
+        return 1;
+    } else if choice == 3 {
+        return 2;
+    } else {
+        println!("Invalid input");
+        return 3;
+    }
 }
 
 fn assign_random_name() -> String {
@@ -544,12 +583,12 @@ pub(crate) fn list_packages() -> String {
 }
 
 pub(crate) fn upgrade_system() -> i32 {
-    let mut p1_log = Command::new("sh")
-        .arg("-c")
-        .arg("echo 'Updating package list...' && curl --output /var/lib/vpt/pkglist https://raw.githubusercontent.com/NitrogenLinux/vpt-repo/main/pkglist && echo 'Done.'")
-        .output()
-        .expect("Couldn't update package list.");
+    download_pkglist();
 
-    // TODO: finish upgrade
+    let binding = list_packages();
+    let pkg_to_upgrade = words_count::count_separately(&binding);
+
+    println!("{}", list_packages());
+
     return 0;
 }
