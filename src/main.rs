@@ -4,7 +4,7 @@ use nix::unistd::getuid;
 use colour::{red_ln, green_ln};
 use indicatif::{ProgressBar, ProgressStyle};
 use crate::imut_api::enterrw;
-use crate::vpl::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, download_pkglist, remove_tar, search_package, upgrade_system, get_pkg_version};
+use crate::vpl::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, download_pkglist, remove_tar, search_package, get_pkg_version};
 
 mod vpl; // import VPLIB
 mod imut_api; // Immutability API
@@ -30,18 +30,18 @@ fn main() {
             }
 
             if !getuid().to_string().eq("0") {
-                println!("You must be root to use this command!");
+                red_ln!("You must be root to use this command!");
                 std::process::exit(1);
             }
 
         } else if command.eq("help") || command.eq( "help") {
             help(0);
         } else {
-            println!("Invalid operation: {}", command);
+            red_ln!("Invalid operation: {}", command);
             std::process::exit(1);
         }
     } else {
-        red_ln!("Error: At least one 2 arguments are required(1 found)");
+        red_ln!("Error: At least one 2 arguments are required(0 found)");
         std::process::exit(0);
     }
 
@@ -84,7 +84,7 @@ fn main() {
             ] // kernel - Vefjiaw OS's kernel
                 .contains(&&*args_mod[i])
             {
-                println!(
+                red_ln!(
                     "Cannot remove '{0}': Package is required by system.",
                     args_mod[i]
                 );
@@ -108,11 +108,11 @@ fn main() {
             } else if input == "n" || input == "no" {
                 std::process::exit(0);
             } else {
-                println!("Invalid input: {}", input);
+                red_ln!("Invalid input: {}", input);
             }
         }
 
-        vpl::upgrade_system();
+        upgrade_system();
     } else {
         red_ln!("At least 3 arguments are required(2 found)");
         std::process::exit(1);
@@ -205,9 +205,8 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if remove_tar(&args_mod[pkgs_done]) == 128 {
-                println!("Package not installed. Skipping...");
-            };
+            remove_tar(&args_mod[pkgs_done]);
+
         } else if command.eq("upgrade") || command.eq("up") {
             println!(
                 "Updating package: {0} {1}/{2}",
@@ -215,10 +214,8 @@ fn main() {
                 pkgs_done + 1,
                 args_mod.len()
             );
-            if install_tar(&args_mod[pkgs_done], "", false, true) == 128 {
-                println!("Package not installed. Skipping...");
-            };
-        }
+            install_tar(&args_mod[pkgs_done], "", false, true);
+            }
 
         pkgs_done += 1;
     }
@@ -232,4 +229,24 @@ fn help(exit_code: i32) {
     println!("usage: vpt <action> <package>");
     println!("Use 'man vpt' to check all available commands");
     std::process::exit(exit_code);
+}
+
+fn upgrade_system() -> i32 {
+    download_pkglist();
+
+    let pkglist = list_packages();
+
+    let tmp = pkglist.split(' ');
+
+    let mut all_pkgs: Vec<_> = tmp.collect();
+
+    all_pkgs.remove(0);
+
+    for i in all_pkgs.iter() {
+        if !compare_old_to_new(i) {
+            install_tar(i, "", false, true);
+        }
+    }
+
+    return 0;
 }

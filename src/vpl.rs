@@ -243,13 +243,13 @@ pub(crate) fn search_package(pkg_name: &str) -> bool {
 }
 
 pub(crate) fn get_package(pkg: &str, cache: bool, location: &str, tarName: &str) -> ExitStatus {
-    let link = "https://raw.githubusercontent.com/vefjiaw/vpt-repo/main/".to_owned() + pkg + ".tar.gz"; // add link searching
+    let link = "https://raw.githubusercontent.com/vefjiaw/vpt-repo/main/".to_owned() + pkg + ".tar.xz"; // add link searching
 
     let status = {
         Command::new("curl")
             .arg(&link)// the link that is figured out previously
             .arg("-o")
-            .arg("/tmp/vpt/".to_owned() + tarName + ".tar.gz")// name of the tar file
+            .arg("/tmp/vpt/".to_owned() + tarName + ".tar.xz")// name of the tar file
             .status()
             .expect("Error: Couldn't download package.")
     };
@@ -264,11 +264,20 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
     let all_packages: Vec<&str> = tmp.collect();
 
+    let mut upgr_ok = false;
+
     for i in all_packages {
         if i == pkg && !upgrade {
             red_ln!("Error: Package {} is already installed.", pkg);
             return 1;
+        } else if i == pkg && upgrade {
+            upgr_ok = true;
         }
+    }
+
+    if !upgr_ok && upgrade {
+        red_ln!("Error: Package {} is not installed.", pkg);
+        return 1;
     }
 
     // return i32 for error codes; 0 - good
@@ -290,17 +299,17 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
         get_package(pkg, true, "", &tarName);
     } else {}
 
-    let tar_file = "/tmp/vpt/".to_owned() + &tarName + ".tar.gz";
+    let tar_file = "/tmp/vpt/".to_owned() + &tarName + ".tar.xz";
 
     fs::create_dir_all(&temp_dir).expect("Couldn't create temp directory.");
 
     Command::new("tar")
-        .arg("xzf")
+        .arg("xf")
         .arg(tar_file)
         .arg("-C")
         .arg(&temp_dir)
         .output()
-        .expect("Couldn't extract tar.gz file.");
+        .expect("Couldn't extract tar.xz file.");
 
     let usr_binpath = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/usr-bin";
 
@@ -522,6 +531,25 @@ fn assign_random_name() -> String {
 }
 
 pub(crate) fn remove_tar(pkg: &str) -> i32 {
+    let pkglist = list_packages();
+
+    let tmp = pkglist.split(' ');
+
+    let all_packages: Vec<&str> = tmp.collect();
+
+    let mut package_exists = false;
+
+    for i in all_packages {
+        if i == pkg {
+            package_exists = true;
+        }
+    }
+
+    if !package_exists {
+        red_ln!("Error: Package {} does not exist", pkg);
+        return 128;
+    }
+
     let db = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
 
     db.execute(
@@ -552,8 +580,6 @@ pub(crate) fn remove_tar(pkg: &str) -> i32 {
     for i in all_files.iter() {
         fs::remove_file(i);
     }
-
-    println!("{:?}", all_files);
 
     if db_lock() {
         let cmd = "DELETE FROM packages WHERE name = '".to_owned() + pkg + "';";
@@ -594,28 +620,4 @@ pub(crate) fn list_packages() -> String {
     }).unwrap();
 
     return packages;
-}
-
-pub(crate) fn upgrade_system() -> i32 {
-    download_pkglist();
-
-    let pkglist = list_packages();
-
-    let tmp = pkglist.split(' ');
-
-    let mut all_pkgs: Vec<_> = tmp.collect();
-
-    all_pkgs.remove(0);
-
-    println!("{:?}", all_pkgs);
-
-    for i in all_pkgs.iter() {
-        println!("{}", compare_old_to_new(i));
-
-        if !compare_old_to_new(i) {
-            install_tar(i, "", false, true);
-        }
-    }
-
-    return 0;
 }
