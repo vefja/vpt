@@ -197,26 +197,6 @@ fn main() {
     while pkgs_done < args_mod.len() {
         progress.set_position(pkgs_done as u64);
         if command.eq("install") || command.eq("in") {
-            let binding = list_packages();
-
-            let tmp = binding.split(' ');
-
-            let all_pkgs: Vec<_> = tmp.collect();
-
-            println!("{}", all_pkgs.join(" "));
-
-            for i in 0..all_pkgs.len() - 1 {
-                println!("{}", i);
-                if all_pkgs[i] == &args_mod[pkgs_done] {
-                    println!(
-                        "Package {0} is already installed. Skipping...",
-                        &args_mod[pkgs_done]
-                    );
-                    pkgs_done += 1;
-                    continue;
-                }
-            }
-
             install_tar(&args_mod[pkgs_done], "", false, false);
         } else if command.eq("remove") || command.eq("rm") {
             println!(

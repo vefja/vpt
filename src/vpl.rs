@@ -258,6 +258,19 @@ pub(crate) fn get_package(pkg: &str, cache: bool, location: &str, tarName: &str)
 }
 
 pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
+    let pkglist = list_packages();
+
+    let tmp = pkglist.split(' ');
+
+    let all_packages: Vec<&str> = tmp.collect();
+
+    for i in all_packages {
+        if i == pkg && !upgrade {
+            red_ln!("Error: Package {} is already installed.", pkg);
+            return 1;
+        }
+    }
+
     // return i32 for error codes; 0 - good
     if !root.is_empty() && !Path::new(root).exists() {
         red_ln!("Error: Cannot install to: {}: No such directory.", root);
@@ -586,14 +599,9 @@ pub(crate) fn list_packages() -> String {
 pub(crate) fn upgrade_system() -> i32 {
     download_pkglist();
 
-    let binding = list_packages();
-    let pkg_to_upgrade = words_count::count_separately(&binding);
+    let pkglist = list_packages();
 
-    println!("{}", list_packages());
-
-    let binding = list_packages();
-
-    let tmp = binding.split(' ');
+    let tmp = pkglist.split(' ');
 
     let mut all_pkgs: Vec<_> = tmp.collect();
 
