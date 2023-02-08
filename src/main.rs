@@ -220,6 +220,8 @@ fn main() {
         pkgs_done += 1;
     }
 
+    progress.set_position(args_mod.len());
+
 	if orig_mode {
         imut_api::enterro();
     }
