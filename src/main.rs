@@ -1,4 +1,4 @@
-use std::{env, io};
+use std::{env, io, mem};
 use std::io::{stdout, Write};
 use nix::unistd::getuid;
 use colour::{red_ln, green_ln};
@@ -11,7 +11,7 @@ mod imut_api; // Immutability API
 mod debug; // for cargo test
 
 fn main() {
-    let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
+    let mut args: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
 
     if imut_args.len() >= 2 {
@@ -49,26 +49,26 @@ fn main() {
     let command = &imut_args[1].to_lowercase(); // redeclare in main
 
     if imut_args.len() >= 3 {
-        for i in 2..args_mod.len() {
-            if args_mod[i].is_empty() {
+        for i in 2..args.len() {
+            if args[i].is_empty() {
                 // Throw error if "" is passed as argument
                 red_ln!("Error: I'm out, you're on your own");
                 std::process::exit(512); // Error 512 for invalid arguments
             }
 
-            if args_mod[i].contains(' ') {
+            if args[i].contains(' ') {
                 // Throw error if package name contains space
                 red_ln!("Error: Package name cannot be empty.");
                 std::process::exit(512);
             }
 
-            if args_mod[i].contains('.') || args_mod[i].contains('/') {
-                red_ln!("Error: Package name cannot contain '{}'", args_mod[i]);
+            if args[i].contains('.') || args[i].contains('/') {
+                red_ln!("Error: Package name cannot contain '{}'", args[i]);
                 std::process::exit(512);
             }
 
-            if get_pkg_version(args_mod[i].as_str()).is_empty() {
-                red_ln!("Error: Package '{}' not found in repository", args_mod[i]);
+            if get_pkg_version(args[i].as_str()).is_empty() {
+                red_ln!("Error: Package '{}' not found in repository", args[i]);
                 std::process::exit(1);
             }
 
@@ -83,17 +83,17 @@ fn main() {
                 "mutter",
                 "kernel",
             ] // kernel - Vefjiaw OS's kernel
-                .contains(&&*args_mod[i])
+                .contains(&&*args[i])
             {
                 red_ln!(
                     "Cannot remove '{0}': Package is required by system.",
-                    args_mod[i]
+                    args[i]
                 );
                 std::process::exit(128);
             }
 
-			if vpl::get_pkg_version(args_mod[i].as_str()).is_empty() {
-            	println!("Couldn't find package {} in repository", args_mod[i])
+			if vpl::get_pkg_version(args[i].as_str()).is_empty() {
+            	println!("Couldn't find package {} in repository", args[i])
             }
         }
     } else if command == "upgrade" || command == "up" {
@@ -119,47 +119,50 @@ fn main() {
         std::process::exit(1);
     }
 
-    args_mod.remove(0);
-    args_mod.remove(0); // remove non-important arguments(will be saved in imut_args)
+    args.remove(0);
+    args.remove(0); // remove non-important arguments(will be saved in imut_args)
+
+    let mut pkg_args = args.clone();
+    drop(args); // drop args
 
     if imut_args[2].eq("search") {
-        if search_package(&args_mod[0]) {
+        if search_package(&pkg_args[0]) {
             println!(
                 "{0}-{1}",
-                &args_mod[0],
-              	vpl::get_pkg_version(&args_mod[0])
+                &pkg_args[0],
+                vpl::get_pkg_version(&pkg_args[0])
             );
-            println!("Use 'vpt install {0}' to install it.", &args_mod[0])
+            println!("Use 'vpt install {0}' to install it.", &pkg_args[0])
         } else {
-            red_ln!("Error: '{0}': No package found.", &args_mod[0])
+            red_ln!("Error: '{0}': No package found.", &pkg_args[0])
         }
     }
 
-    args_mod.dedup(); // remove duplicates
+    pkg_args.dedup(); // remove duplicates
 
-    if command.eq("install") || command.eq("in") && args_mod.len() == 1 {
-        println!("Installing: {0:?}", args_mod.join(" "));
-    } else if command.eq("remove") || command.eq("rm") && args_mod.len() == 1 {
-        println!("Removing: {0:?}", args_mod.join(" "));
-    } else if command.eq("upgrade") || command.eq("up") && args_mod.len() == 1 {
-        println!("Upgrading: {0:?}", args_mod.join(" "));
-    } else if command.eq("install") || command.eq("in") && args_mod.len() != 1 {
+    if command.eq("install") || command.eq("in") && pkg_args.len() == 1 {
+        println!("Installing: {0:?}", pkg_args.join(" "));
+    } else if command.eq("remove") || command.eq("rm") && pkg_args.len() == 1 {
+        println!("Removing: {0:?}", pkg_args.join(" "));
+    } else if command.eq("upgrade") || command.eq("up") && pkg_args.len() == 1 {
+        println!("Upgrading: {0:?}", pkg_args.join(" "));
+    } else if command.eq("install") || command.eq("in") && pkg_args.len() != 1 {
         println!(
             "Installing {0} packages: {1:?}",
-            args_mod.len(),
-            args_mod.join("\n")
+            pkg_args.len(),
+            pkg_args.join("\n")
         );
-    } else if command.eq("remove") || command.eq("rm") && args_mod.len() != 1 {
+    } else if command.eq("remove") || command.eq("rm") && pkg_args.len() != 1 {
         println!(
             "Removing {0} packages: {1:?}",
-            args_mod.len(),
-            args_mod.join("\n")
+            pkg_args.len(),
+            pkg_args.join("\n")
         );
-    } else if command.eq("upgrade") || command.eq("up") && args_mod.len() != 1 {
+    } else if command.eq("upgrade") || command.eq("up") && pkg_args.len() != 1 {
         println!(
             "Upgrading {0} packages: {1:?}",
-            args_mod.len(),
-            args_mod.join("\n")
+            pkg_args.len(),
+            pkg_args.join("\n")
         );
     }
 
@@ -193,33 +196,35 @@ fn main() {
         enterrw();
     }
 
-    let progress = ProgressBar::new(args_mod.len() as u64);
+    let progress = ProgressBar::new(pkg_args.len() as u64);
 
-    while pkgs_done < args_mod.len() {
+    while pkgs_done < pkg_args.len() {
         progress.set_position(pkgs_done as u64);
         if command.eq("install") || command.eq("in") {
-            install_tar(&args_mod[pkgs_done], "", false, false);
+            install_tar(&pkg_args[pkgs_done], "", false, false);
         } else if command.eq("remove") || command.eq("rm") {
             println!(
                 "Removing package: {0} {1}/{2}",
-                &args_mod[pkgs_done],
+                &pkg_args[pkgs_done],
                 pkgs_done + 1,
-                args_mod.len()
+                pkg_args.len()
             );
-            remove_tar(&args_mod[pkgs_done]);
+            remove_tar(&pkg_args[pkgs_done]);
 
         } else if command.eq("upgrade") || command.eq("up") {
             println!(
                 "Updating package: {0} {1}/{2}",
-                &args_mod[pkgs_done],
+                &pkg_args[pkgs_done],
                 pkgs_done + 1,
-                args_mod.len()
+                pkg_args.len()
             );
-            install_tar(&args_mod[pkgs_done], "", false, true);
+            install_tar(&pkg_args[pkgs_done], "", false, true);
             }
 
         pkgs_done += 1;
     }
+
+    progress.set_position(pkg_args.len() as u64);
 
 	if orig_mode {
         imut_api::enterro();
