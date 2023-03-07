@@ -534,25 +534,6 @@ fn assign_random_name() -> String {
 }
 
 pub(crate) fn remove_tar(pkg: &str) -> i32 {
-    let pkglist = list_packages();
-
-    let tmp = pkglist.split(' ');
-
-    let all_packages: Vec<&str> = tmp.collect();
-
-    let mut package_exists = false;
-
-    for i in all_packages {
-        if i == pkg {
-            package_exists = true;
-        }
-    }
-
-    if !package_exists {
-        red_ln!("Error: Package {} does not exist", pkg);
-        return 128;
-    }
-
     let db = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
 
     db.execute(

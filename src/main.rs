@@ -1,10 +1,11 @@
 use std::{env, io, mem};
 use std::io::{stdout, Write};
+use std::process::exit;
 use nix::unistd::getuid;
 use colour::{red_ln, green_ln};
 use indicatif::{ProgressBar, ProgressStyle};
 use crate::imut_api::enterrw;
-use crate::vpl::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, install_tar, list_packages, download_pkglist, remove_tar, search_package, get_pkg_version};
+use crate::vpl::{*};
 
 mod vpl; // import VPLIB
 mod imut_api; // Immutability API
@@ -94,6 +95,27 @@ fn main() {
 
 			if vpl::get_pkg_version(args[i].as_str()).is_empty() {
             	println!("Couldn't find package {} in repository", args[i])
+            }
+
+            if command.eq("remove") {
+                let pkglist = list_packages();
+
+                let tmp = pkglist.split(' ');
+
+                let all_packages: Vec<&str> = tmp.collect();
+
+                let mut package_exists = false;
+
+                for j in all_packages {
+                    if j.eq(args[i].as_str()) {
+                        package_exists = true;
+                    }
+                }
+
+                if !package_exists {
+                    red_ln!("Error: Package {} not installed.", args[i].as_str());
+                    exit(120)
+                }
             }
         }
     } else if command == "upgrade" || command == "up" {
