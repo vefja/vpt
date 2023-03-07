@@ -8,6 +8,7 @@ use crate::vpl::{add_pkg_to_db, compare_old_to_new, debug_add_pkg_to_pkglist, in
 
 mod vpl; // import VPLIB
 mod imut_api; // Immutability API
+mod debug; // for cargo test
 
 fn main() {
     let mut args_mod: Vec<String> = env::args().collect(); // args_mod that can be modified
@@ -219,8 +220,6 @@ fn main() {
 
         pkgs_done += 1;
     }
-
-    progress.set_position(args_mod.len() as u64);
 
 	if orig_mode {
         imut_api::enterro();

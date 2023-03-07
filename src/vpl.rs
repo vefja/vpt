@@ -1,13 +1,13 @@
 use std::fs::File;
 use std::path::Path;
 use std::io::prelude::*;
-use std::{env, fs, io, str};
+use std::{fs, io, str};
 use version_compare::{Cmp, Version};
-use sqlite;
 use colour::*;
 use rand::Rng;
 use std::process::{exit, Command, ExitStatus};
-
+use tar::Archive;
+use xz2::read::XzDecoder;
 
 pub(crate) fn check_option(option: &str) -> bool {
     let cfg = fs::read_to_string("/etc/vpt/vpt.conf").unwrap();
@@ -83,8 +83,6 @@ pub(crate) fn compare_old_to_new(package: &str) -> bool {
     let oldver = Version::from(&oldver).unwrap();
 
     let newver = Version::from(&newver).unwrap();
-
-    println!("Current: {0} \n Newest: {1}", oldver, newver);
 
     let mut is_newer = false;
 
@@ -289,7 +287,6 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
     let tarName = assign_random_name();
 
-
     let dir_name = assign_random_name();
 
     let temp_dir = "/tmp/vpt/".to_owned() + &dir_name;
@@ -303,13 +300,19 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
     fs::create_dir_all(&temp_dir).expect("Couldn't create temp directory.");
 
-    Command::new("tar")
-        .arg("xf")
-        .arg(tar_file)
-        .arg("-C")
-        .arg(&temp_dir)
-        .output()
-        .expect("Couldn't extract tar.xz file.");
+    // Command::new("tar")
+    //     .arg("x  f")
+    //     .arg(tar_file)
+    //     .arg("-C")
+    //     .arg(&temp_dir)
+    //     .output()
+    //     .expect("Couldn't extract tar.xz file.");
+
+    let path = tar_file.as_str();
+    let tar_gz = File::open(path).unwrap();
+    let tar = XzDecoder::new(tar_gz);
+    let mut archive = Archive::new(tar);
+    archive.unpack(&temp_dir).unwrap();
 
     let usr_binpath = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/usr-bin";
 
@@ -336,11 +339,11 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/usr-bin/";
 
-            let installed_path = "/usr/bin/".to_owned() + &*binary.replace(&real_path, "");
+            let destination = "/usr/bin/".to_owned() + &*binary.replace(&real_path, "");
 
-            files = files + &installed_path + " ";
+            files = files + &destination + " ";
 
-            fs::copy(binary, installed_path).unwrap();
+            fs::copy(binary, destination).unwrap();
         }
     }
 
@@ -351,11 +354,11 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/bin/";
 
-            let installed_path = "/bin/".to_owned() + &*binary.replace(&real_path, "");
+            let destination = "/bin/".to_owned() + &*binary.replace(&real_path, "");
 
-            files = files + &installed_path + " ";
+            files = files + &destination + " ";
 
-            fs::copy(binary, installed_path).unwrap();
+            fs::copy(binary, destination).unwrap();
         }
     }
 
@@ -366,11 +369,11 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/MANUALS";
 
-            let installed_path = "/usr/share/man/man1/".to_owned() + &*manual.replace(&real_path, "");
+            let destination = "/usr/share/man/man1/".to_owned() + &*manual.replace(&real_path, "");
 
-            files = files + &installed_path + " ";
+            files = files + &destination + " ";
 
-            fs::copy(manual, installed_path).unwrap();
+            fs::copy(manual, destination).unwrap();
         }
     }
 
@@ -403,16 +406,16 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/usr-share";
 
-            let installed_path = "/usr/share/".to_owned() + &*cfg.replace(&real_path, "");
+            let destination = "/usr/share/".to_owned() + &*cfg.replace(&real_path, "");
 
-            files = files + &installed_path + " ";
+            files = files + &destination + " ";
 
-            if Path::new(&installed_path).exists() {
-                if resolve_conflict(&installed_path) == 2 {
+            if Path::new(&destination).exists() {
+                if resolve_conflict(&destination) == 2 {
                     red_ln!("Error: File Conflict: Cannot continue");
                     exit(128);
                 } else {
-                    fs::copy(cfg, installed_path).unwrap();
+                    fs::copy(cfg, destination).unwrap();
                 }
             }
         }
@@ -425,11 +428,11 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/BOOT";
 
-            let installed_path = "/boot/".to_owned() + &*file.replace(&real_path, "");
+            let destination = "/boot/".to_owned() + &*file.replace(&real_path, "");
 
-            files = files + &installed_path + " ";
+            files = files + &destination + " ";
 
-            fs::copy(file, installed_path).unwrap();
+            fs::copy(file, destination).unwrap();
         }
     }
 
@@ -440,11 +443,11 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib";
 
-            let installed_path = "/usr/lib/".to_owned() + &*lib.replace(&real_path, "");
+            let destination = "/usr/lib/".to_owned() + &*lib.replace(&real_path, "");
 
-            files = files + &installed_path + " ";
+            files = files + &destination + " ";
 
-            fs::copy(lib, installed_path).unwrap();
+            fs::copy(lib, destination).unwrap();
         }
     }
 
@@ -455,11 +458,11 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib64";
 
-            let installed_path = "/usr/lib64/".to_owned() + &*lib64.replace(&real_path, "");
+            let destination = "/usr/lib64/".to_owned() + &*lib64.replace(&real_path, "");
 
-            files = files + &installed_path + " ";
+            files = files + &destination + " ";
 
-            fs::copy(lib64, installed_path).unwrap();
+            fs::copy(lib64, destination).unwrap();
         }
     }
 
