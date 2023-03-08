@@ -53,18 +53,19 @@ fn main() {
         for i in 2..args.len() {
             if args[i].is_empty() {
                 // Throw error if "" is passed as argument
-                red_ln!("Error: I'm out, you're on your own");
+                red_ln!("Error: What were you trying to achieve?");
                 std::process::exit(512); // Error 512 for invalid arguments
             }
 
             if args[i].contains(' ') {
                 // Throw error if package name contains space
-                red_ln!("Error: Package name cannot be empty.");
+                red_ln!("Error: But why, why a space?");
                 std::process::exit(512);
             }
 
             if args[i].contains('.') || args[i].contains('/') {
                 red_ln!("Error: Package name cannot contain '{}'", args[i]);
+                red_ln!("Error: Never try this again... or else");
                 std::process::exit(512);
             }
 
@@ -91,10 +92,6 @@ fn main() {
                     args[i]
                 );
                 std::process::exit(128);
-            }
-
-			if vpl::get_pkg_version(args[i].as_str()).is_empty() {
-            	println!("Couldn't find package {} in repository", args[i])
             }
 
             if command.eq("remove") {
@@ -142,10 +139,10 @@ fn main() {
     }
 
     args.remove(0);
-    args.remove(0); // remove non-important arguments(will be saved in imut_args)
+    args.remove(0); // remove unneeded args in order to change args to pkg_args
 
     let mut pkg_args = args.clone();
-    drop(args); // drop args
+    drop(args); // drop the old args
 
     if imut_args[2].eq("search") {
         if search_package(&pkg_args[0]) {
@@ -191,10 +188,10 @@ fn main() {
     let mut in_prompt = true;
 
     while in_prompt {
-        print!("[Y/n] ");
+        print!("(Y/n) ");
         stdout().flush().unwrap(); // flush stdout
 
-        let mut input = String::new(); // answer to the "Continue?" prompt
+        let mut input = String::new(); // answer to the y/n prompt
         io::stdin().read_line(&mut input).unwrap(); // take input
         input = input.to_lowercase();
 
@@ -205,14 +202,14 @@ fn main() {
         } else if !input.eq("y\n") && !input.eq("yes\n") && !input.eq("\n") {
             // if answer is neither "y" nor "yes" nor nothing
             red_ln!("Input Error: Invalid answer.")
-        } else {
+        } else { // if answer if "y", "yes" or nothing
             in_prompt = false;
         }
     }
 
     let mut pkgs_done = 0;
 
-	let orig_mode = imut_api::getmode();
+	let orig_mode = imut_api::getmode(); // save orig mode (so it doesn't constantly check)
   
     if orig_mode {
         enterrw();
@@ -251,6 +248,8 @@ fn main() {
 	if orig_mode {
         imut_api::enterro();
     }
+
+    mem::drop(orig_mode);
 }
 
 fn help(exit_code: i32) {

@@ -326,9 +326,11 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
     let bootpath = "/tmp/vpt/".to_owned() + &dir_name + "/BOOT";
 
-    let libpath = "/tmp/vpt/".to_owned() + &dir_name + "/LIB";
+    let libpath = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib";
 
-    let lib64path = "/tmp/vpt/".to_owned() + &dir_name + "/LIB64";
+    let lib64path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib64";
+
+    let varlibpath = "/tmp/vpt".to_owned() + &dir_name + "/LIBRARIES" + "/var";
 
     let mut files = String::new();
 
@@ -459,6 +461,21 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib64";
 
             let destination = "/usr/lib64/".to_owned() + &*lib64.replace(&real_path, "");
+
+            files = files + &destination + " ";
+
+            fs::copy(lib64, destination).unwrap();
+        }
+    }
+
+    if Path::new(&varlibpath).is_dir() {
+        for lib in fs::read_dir(&varlibpath).unwrap() {
+            let lib = lib.unwrap().path();
+            let lib = lib.to_str().unwrap();
+
+            let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES/" + "var";
+
+            let destination = "/var/lib/".to_owned() + &*lib.replace(&real_path, "");
 
             files = files + &destination + " ";
 
