@@ -14,7 +14,7 @@ pub(crate) fn check_option(option: &str) -> bool {
     let cfg = cfg.split_whitespace();
 
     let opt1 = format!("{}=true", option);
-    let opt2 = format!("{} =false", option);
+    let opt2 = format!("{}=false", option);
 
     for line in cfg {
         if line.eq(&opt1) || line.eq(&opt2) {
@@ -89,8 +89,6 @@ pub(crate) fn compare_old_to_new(package: &str) -> bool {
     if oldver.compare(newver) == Cmp::Gt {
         is_newer = true;
     }
-
-    // println!("Current: {0} \n Newest: {1:?} \n Newer? {2}", db1_ver, db2_ver, isnewer);
 
     return !is_newer; // return if db2's version is newer than db1's
 }
@@ -186,9 +184,9 @@ pub(crate) fn add_pkg_to_db(package: &str, files: String) {
 pub(crate) fn debug_add_pkg_to_pkglist(package: &str) {
     let pkgdb = sqlite::open("/var/lib/vpt/packages.db").unwrap();
 
-    let ver = 999999;
+    let ver = 99999;
 
-    let desc = "Foo Bar Baz";
+    let desc = "This is a test description, and this is not a real package, instead it is a fake package for testing purposes.";
 
     let cmd = "INSERT INTO pkglist VALUES ('".to_owned()
         + package
@@ -242,7 +240,7 @@ pub(crate) fn search_package(pkg_name: &str) -> bool {
 
 pub(crate) fn get_package(pkg: &str, cache: bool, location: &str, tarName: &str) -> ExitStatus {
     let link = "https://raw.githubusercontent.com/vefjiaw/vpt-repo/main/".to_owned() + pkg + ".tar.xz"; // add link searching
-
+    // TODO: Check multiple repos for package
     let status = {
         Command::new("curl")
             .arg(&link)// the link that is figured out previously
@@ -299,14 +297,6 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
     let tar_file = "/tmp/vpt/".to_owned() + &tarName + ".tar.xz";
 
     fs::create_dir_all(&temp_dir).expect("Couldn't create temp directory.");
-
-    // Command::new("tar")
-    //     .arg("x  f")
-    //     .arg(tar_file)
-    //     .arg("-C")
-    //     .arg(&temp_dir)
-    //     .output()
-    //     .expect("Couldn't extract tar.xz file.");
 
     let path = tar_file.as_str();
     let tar_gz = File::open(path).unwrap();
@@ -479,7 +469,7 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
 
             files = files + &destination + " ";
 
-            fs::copy(lib64, destination).unwrap();
+            fs::copy(lib, destination).unwrap();
         }
     }
 
@@ -512,6 +502,19 @@ pub(crate) fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -
     return 0;
 }
 
+fn unattended_conflict_solver(conflict: &str, solution: &str) -> i32 { // for use with alternative VPT frontends
+    if solution == "overwrite" {
+        fs::remove_file(conflict).unwrap();
+        return 0; // conflict solved
+    } else if solution == "skip" {
+        return 1; // conflict solved (might cause issues)
+    } else if solution == "abort" {
+        return 2; // conflict not solved and abort
+    } else {
+        return 999; // programmer error
+    }
+}
+
 fn resolve_conflict(conflict: &str) -> i32 {
     println!("File {} already exists", conflict);
     println!("1) Overwrite file");
@@ -536,17 +539,24 @@ fn resolve_conflict(conflict: &str) -> i32 {
     }
 }
 
+// Generate a random name.
 fn assign_random_name() -> String {
+    // The charset we want to use for the name.
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
                             abcdefghijklmnopqrstuvwxyz\
                             0123456789";
+    // Initialize the random number generator.
     let mut rng = rand::thread_rng();
 
+    // Create the name.
     let name: String = (0..10).map(|_| {
+        // Choose a random index into the charset.
         let idx = rng.gen_range(0..CHARSET.len());
+        // Convert the byte to a character.
         CHARSET[idx] as char
     }).collect();
 
+    // Return the name.
     return name;
 }
 
@@ -604,21 +614,31 @@ pub(crate) fn download_pkglist() {
 }
 
 pub(crate) fn list_packages() -> String {
+    // Open the database
     let db = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
-    let mut packages = String::new();
 
+    // Create the packages table if it doesn't exist
     db.execute(
         "CREATE TABLE if not exists packages (name TEXT, version TEXT, description TEXT, files TEXT);"
     ).unwrap();
 
+    // Create a string to store the list of packages
+    let mut packages = String::new();
+
+    // Iterate over the rows in the packages table
     db.iterate("SELECT name FROM packages", |pairs| {
+        // For each column in this row
         for &(column, value) in pairs.iter() {
+            // If the column is "name"
             if column == "name" {
+                // Add the value to the packages string
                 packages = packages.to_owned() + " " + &value.unwrap().to_string();
             }
         }
+        // Continue iterating
         true
     }).unwrap();
 
+    // Return the packages string
     return packages;
 }
