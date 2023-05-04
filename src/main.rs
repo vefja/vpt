@@ -157,8 +157,6 @@ fn main() {
         exit(1);
     }
 
-    return;
-
     args.remove(0);
     args.remove(0); // remove unneeded args in order to change args to pkg_args
 
