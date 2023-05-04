@@ -2,18 +2,19 @@ use std::{env, io, mem};
 use std::io::{stdout, Write};
 use std::process::exit;
 use nix::unistd::getuid;
-use colour::{red_ln, green_ln};
+use colour::{red_ln, white};
 use indicatif::{ProgressBar, ProgressStyle};
-use crate::imut_api::enterrw;
-use crate::vpl::{*};
+use vmod;
+use immutability;
 
-mod vpl; // import VPLIB
-mod imut_api; // Immutability API
-mod debug; // for cargo test
+mod debug; // for cargo test 
 
 fn main() {
     let mut args: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
+
+    let mut debug_mode: bool = false;
+
 
     if imut_args.len() >= 2 {
         let command = &imut_args[1].to_lowercase();
@@ -27,14 +28,24 @@ fn main() {
             || command == "search"
             || command == "se"
         {
-            if vpl::check_option("snapshots") {
-                vpl::new_snapshot("pre", &imut_args[1]);
+            #[cfg(not(debug_assertions))]
+            if vmod::check_option("snapshots") {
+                vmod::new_snapshot("pre", &imut_args[1]);
             }
-
+        
+            #[cfg(not(debug_assertions))]
             if !getuid().to_string().eq("0") {
                 red_ln!("You must be root to use this command!");
                 std::process::exit(1);
             }
+
+            #[cfg(not(debug_assertions))]
+            if vmod::self_test() == 999 {
+                red_ln!("One or more necessary files are missing. Cannot continue.")
+            }
+
+            #[cfg(debug_assertions)]
+            println!("Running in debug mode. You're free to do whatever")
 
         } else if command.eq("help") || command.eq( "help") {
             help(0);
@@ -49,8 +60,15 @@ fn main() {
 
     let command = &imut_args[1].to_lowercase(); // redeclare in main
 
+    let mut inst_path: String = "".to_owned(); 
+
     if imut_args.len() >= 3 {
         for i in 2..args.len() {
+            if args[i].contains("--root=") {
+                inst_path = args[i].replace("--root=", "");
+                break;
+            }
+
             if args[i].is_empty() {
                 // Throw error if "" is passed as argument
                 red_ln!("Error: What were you trying to achieve?");
@@ -69,12 +87,12 @@ fn main() {
                 std::process::exit(512);
             }
 
-            if get_pkg_version(args[i].as_str()).is_empty() {
+            if vmod::get_pkg_version(args[i].as_str()).is_empty() {
                 red_ln!("Error: Package '{}' not found in repository", args[i]);
                 std::process::exit(1);
             }
 
-            if !vpl::check_option("remove_protected")
+            if !vmod::check_option("remove_protected")
                 && command.eq("remove")
                 && [
                 "vpt",
@@ -95,7 +113,7 @@ fn main() {
             }
 
             if command.eq("remove") {
-                let pkglist = list_packages();
+                let pkglist = vmod::list_packages();
 
                 let tmp = pkglist.split(' ');
 
@@ -135,8 +153,11 @@ fn main() {
         upgrade_system();
     } else {
         red_ln!("At least 3 arguments are required(2 found)");
-        std::process::exit(1);
+        white!();
+        exit(1);
     }
+
+    return;
 
     args.remove(0);
     args.remove(0); // remove unneeded args in order to change args to pkg_args
@@ -145,11 +166,11 @@ fn main() {
     drop(args); // drop the old args
 
     if imut_args[2].eq("search") {
-        if search_package(&pkg_args[0]) {
+        if vmod::search_package(&pkg_args[0]) {
             println!(
                 "{0}-{1}",
                 &pkg_args[0],
-                vpl::get_pkg_version(&pkg_args[0])
+                vmod::get_pkg_version(&pkg_args[0])
             );
             println!("Use 'vpt install {0}' to install it.", &pkg_args[0])
         } else {
@@ -209,10 +230,10 @@ fn main() {
 
     let mut pkgs_done = 0;
 
-	let orig_mode = imut_api::getmode(); // save orig mode (so it doesn't constantly check)
+	let orig_mode = immutability::getmode(); // save orig mode (so it doesn't constantly check)
   
     if orig_mode {
-        enterrw();
+        immutability::enterrw();
     }
 
     let progress = ProgressBar::new(pkg_args.len() as u64);
@@ -220,7 +241,7 @@ fn main() {
     while pkgs_done < pkg_args.len() {
         progress.set_position(pkgs_done as u64);
         if command.eq("install") || command.eq("in") {
-            install_tar(&pkg_args[pkgs_done], "", false, false);
+            vmod::install_tar(&pkg_args[pkgs_done], &inst_path, inst_path.is_empty(), false);
         } else if command.eq("remove") || command.eq("rm") {
             println!(
                 "Removing package: {0} {1}/{2}",
@@ -228,7 +249,7 @@ fn main() {
                 pkgs_done + 1,
                 pkg_args.len()
             );
-            remove_tar(&pkg_args[pkgs_done]);
+            vmod::remove_tar(&pkg_args[pkgs_done]);
 
         } else if command.eq("upgrade") || command.eq("up") {
             println!(
@@ -237,7 +258,7 @@ fn main() {
                 pkgs_done + 1,
                 pkg_args.len()
             );
-            install_tar(&pkg_args[pkgs_done], "", false, true);
+            vmod::install_tar(&pkg_args[pkgs_done], "", false, true);
             }
 
         pkgs_done += 1;
@@ -246,7 +267,7 @@ fn main() {
     progress.set_position(pkg_args.len() as u64);
 
 	if orig_mode {
-        imut_api::enterro();
+        immutability::enterro();
     }
 
     mem::drop(orig_mode);
@@ -259,9 +280,9 @@ fn help(exit_code: i32) {
 }
 
 fn upgrade_system() -> i32 {
-    download_pkglist();
+    vmod::download_pkglist();
 
-    let pkglist = list_packages();
+    let pkglist = vmod::list_packages();
 
     let tmp = pkglist.split(' ');
 
@@ -270,8 +291,8 @@ fn upgrade_system() -> i32 {
     all_pkgs.remove(0);
 
     for i in all_pkgs.iter() {
-        if !compare_old_to_new(i) {
-            install_tar(i, "", false, true);
+        if !vmod::compare_old_to_new(i) {
+            vmod::install_tar(i, "", false, true);
         }
     }
 
