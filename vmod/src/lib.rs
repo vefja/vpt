@@ -261,7 +261,7 @@ pub fn search_package(pkg_name: &str) -> bool {
 }
 
 pub fn get_package(pkg: &str, cache: bool, location: &str, tarName: &str) -> ExitStatus {
-    let link = "https://raw.githubusercontent.com/vefjiaw/vpt-repo/main/".to_owned() + pkg + ".tar.xz"; // add link searching
+    let link = "https://raw.githubusercontent.com/vefjiaw/repo/main/".to_owned() + pkg + ".tar.xz"; // add link searching
     // TODO: Check multiple repos for package
     let status = {
         Command::new("curl")
@@ -630,7 +630,7 @@ pub fn download_pkglist() {
     Command::new("curl")
         .arg("--output")
         .arg("/var/lib/vpt/packages.db")
-        .arg("https://raw.githubusercontent.com/Vefjiaw/vpt-repo/main/pkglist")
+        .arg("https://raw.githubusercontent.com/Vefjiaw/repo/main/pkglist")
         .output()
         .expect("Couldn't download package list.");
 }
