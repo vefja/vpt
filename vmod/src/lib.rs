@@ -172,8 +172,8 @@ fn get_pkg_desc(package: &str) -> String {
     description
 }
 
-pub fn add_pkg_to_db(package: &str, files: String) {
-    if !db_lock() { return; }; // check if database is locked
+pub fn add_pkg_to_db(package: &str, files: String) -> i32 {
+    if !db_lock() { return 16; }; // check if database is locked
 
     let pkgdb = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
 
@@ -200,6 +200,8 @@ pub fn add_pkg_to_db(package: &str, files: String) {
     pkgdb.execute(cmd).unwrap();
 
     fs::remove_file("/var/lib/vpt/local/packages.db.lock").unwrap();
+
+    return 0;
 }
 
 pub fn debug_add_pkg_to_pkglist(package: &str) {
@@ -228,7 +230,6 @@ pub fn debug_add_pkg_to_pkglist(package: &str) {
 
 fn db_lock() -> bool {
     if Path::new("/var/lib/vpt/local/packages.db.lock").exists() {
-        println!("Couldn't acquire lock on database");
         return false; // return false if you can't lock database
     }
 
@@ -286,21 +287,20 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
 
     for i in all_packages {
         if i == pkg && !upgrade {
-            red_ln!("Error: Package {} is already installed.", pkg);
-            return 1;
+            return 1; // already installed
         } else if i == pkg && upgrade {
             upgr_ok = true;
         }
     }
 
     if !upgr_ok && upgrade {
-        red_ln!("Error: Package {} is not installed.", pkg);
-        return 1;
+        return 2; // not installed
     }
 
     // return i32 for error codes; 0 - good
     if !root.is_empty() && !Path::new(root).exists() {
-        red_ln!("Error: Cannot install to: {}: No such directory.", root);
+        // red_ln!("Error: Cannot install to: {}: No such directory.", root);
+        return 404; // return 404 if root directory doesn't exist
     } else if !root.is_empty() {
         // TODO: add ability to install to a different root directory
     }
@@ -315,6 +315,38 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
         // offline install tries to install the package off the disk
         get_package(pkg, true, "", &tarName);
     } else {}
+
+    if !upgrade {
+        if (add_pkg_to_db(pkg, files) == 16) {
+            return 16; // return 16 if database is locked
+        }
+    } else {
+        let pkgdb = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
+        pkgdb
+            .execute("
+            CREATE TABLE if not exists packages (name TEXT, version TEXT, description TEXT, files TEXT);
+            ", );
+
+        let ver = get_pkg_version(pkg);
+
+        let desc = get_pkg_desc(pkg);
+
+
+        let cmd = "UPDATE packages".to_owned()
+            + " SET version = '"
+            + &*ver.to_string()
+            + "', description = '"
+            + &desc
+            + "' WHERE name = '"
+            + pkg
+            + "';";
+
+        if !db_lock() {
+            return 16; // return 16 if database is locked
+        }
+
+        pkgdb.execute(cmd).unwrap();
+    }
 
     let tar_file = "/tmp/vpt/".to_owned() + &tarName + ".tar.xz";
 
@@ -495,32 +527,6 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
         }
     }
 
-    if !upgrade {
-        add_pkg_to_db(pkg, files);
-    } else {
-        let pkgdb = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
-        pkgdb
-            .execute("
-            CREATE TABLE if not exists packages (name TEXT, version TEXT, description TEXT, files TEXT);
-            ", );
-
-        let ver = get_pkg_version(pkg);
-
-        let desc = get_pkg_desc(pkg);
-
-
-        let cmd = "UPDATE packages".to_owned()
-            + " SET version = '"
-            + &*ver.to_string()
-            + "', description = '"
-            + &desc
-            + "' WHERE name = '"
-            + pkg
-            + "';";
-
-        pkgdb.execute(cmd).unwrap();
-    }
-
     return 0;
 }
 
@@ -537,29 +543,6 @@ fn unattended_conflict_solver(conflict: &str, solution: &str) -> i32 { // for us
     }
 }
 
-fn resolve_conflict(conflict: &str) -> i32 {
-    println!("File {} already exists", conflict);
-    println!("1) Overwrite file");
-    println!("2) Skip file");
-    println!("3) Do nothing and abort");
-
-    let mut choice = String::new();
-    io::stdin().read_line(&mut choice).unwrap();
-
-    let choice: i32 = choice.trim().parse().unwrap();
-
-    if choice == 1 {
-        fs::remove_file(conflict).unwrap();
-        return 0;
-    } else if choice == 2 {
-        return 1;
-    } else if choice == 3 {
-        return 2;
-    } else {
-        println!("Invalid input");
-        return 3;
-    }
-}
 
 // Generate a random name.
 fn assign_random_name() -> String {

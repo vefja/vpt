@@ -1,4 +1,4 @@
-use std::{env, io, mem};
+use std::{env, fs, io, mem};
 use std::io::{stdout, Write};
 use std::process::exit;
 use nix::unistd::getuid;
@@ -10,6 +10,13 @@ use immutability;
 mod debug; // for cargo test 
 
 fn main() {
+    if (vmod::self_test() != 0)
+    {
+        red_ln!("One or several necessary files are missing. Cannot continue.");
+        red_ln!("Run 'vpt --repair' to repair the installation. (online)");
+        red_ln!("Run 'vpt --repair-offline' to repair the installation. (offline)");
+    }
+
     let mut args: Vec<String> = env::args().collect(); // args_mod that can be modified
     let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
 
@@ -18,6 +25,13 @@ fn main() {
 
     if imut_args.len() >= 2 {
         let command = &imut_args[1].to_lowercase();
+
+        if command == "--repair" {
+            println!("repairing online");
+        }
+        else if command == "--repair-offline" {
+            println!("repairing offline");
+        }
 
         if command == "install"
             || command == "in"
@@ -71,19 +85,18 @@ fn main() {
 
             if args[i].is_empty() {
                 // Throw error if "" is passed as argument
-                red_ln!("Error: What were you trying to achieve?");
+                red_ln!("Error: Argument cannot be equal to nothing");
                 std::process::exit(512); // Error 512 for invalid arguments
             }
 
             if args[i].contains(' ') {
                 // Throw error if package name contains space
-                red_ln!("Error: But why, why a space?");
+                red_ln!("Error: Argument cannot contain space");
                 std::process::exit(512);
             }
 
             if args[i].contains('.') || args[i].contains('/') {
                 red_ln!("Error: Package name cannot contain '{}'", args[i]);
-                red_ln!("Error: Never try this again... or else");
                 std::process::exit(512);
             }
 
@@ -123,13 +136,9 @@ fn main() {
 
                 for j in all_packages {
                     if j.eq(args[i].as_str()) {
-                        package_exists = true;
+                        red_ln!("Error: Package {} not installed.", args[i].as_str());
+                        exit(120);
                     }
-                }
-
-                if !package_exists {
-                    red_ln!("Error: Package {} not installed.", args[i].as_str());
-                    exit(120)
                 }
             }
         }
@@ -295,4 +304,28 @@ fn upgrade_system() -> i32 {
     }
 
     return 0;
+}
+
+fn resolve_conflict(conflict: &str) -> i32 {
+    println!("File {} already exists", conflict);
+    println!("1) Overwrite file");
+    println!("2) Skip file");
+    println!("3) Do nothing and abort");
+
+    let mut choice = String::new();
+    io::stdin().read_line(&mut choice).unwrap();
+
+    let choice: i32 = choice.trim().parse().unwrap();
+
+    return if choice == 1 {
+        fs::remove_file(conflict).unwrap();
+        0
+    } else if choice == 2 {
+        1
+    } else if choice == 3 {
+        2
+    } else {
+        println!("Invalid input");
+        3
+    }
 }
