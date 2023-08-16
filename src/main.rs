@@ -2,7 +2,7 @@ use std::{env, fs, io, mem};
 use std::io::{stdout, Write};
 use std::process::exit;
 use nix::unistd::getuid;
-use colour::{red_ln, white};
+use colour::{green_ln, red_ln, white};
 use indicatif::{ProgressBar, ProgressStyle};
 use vmod;
 use immutability;
@@ -57,7 +57,7 @@ fn main() {
             }
 
             #[cfg(debug_assertions)]
-            println!("Running in debug mode. You're free to do whatever")
+            green_ln!("Running in debug mode. You're free to do whatever")
 
         } else if command.eq("help") || command.eq( "help") {
             help(0);
@@ -66,7 +66,7 @@ fn main() {
             std::process::exit(1);
         }
     } else {
-        red_ln!("Error: At least one 2 arguments are required(0 found)");
+        red_ln!("Error: You must specify an operation");
         std::process::exit(0);
     }
 
@@ -95,6 +95,10 @@ fn main() {
 
             if args[i].contains('.') || args[i].contains('/') {
                 red_ln!("Error: Package name cannot contain '{}'", args[i]);
+                std::process::exit(512);
+            }
+            if !args[i].replace('-', "").chars().all(|c| c.is_alphanumeric()) {
+                red_ln!("Error: Argument cannot contain {}", args[i]);
                 std::process::exit(512);
             }
 
@@ -304,29 +308,29 @@ fn upgrade_system() -> i32 {
     return 0;
 }
 
-fn resolve_conflict(conflict: &str) -> i32 {
-    println!("File {} already exists", conflict);
-    println!("1) Overwrite file");
-    println!("2) Skip file");
-    println!("3) Do nothing and abort");
-
-    let mut choice = String::new();
-    io::stdin().read_line(&mut choice).unwrap();
-
-    let choice: i32 = choice.trim().parse().unwrap();
-
-    return if choice == 1 {
-        fs::remove_file(conflict).unwrap();
-        0
-    } else if choice == 2 {
-        1
-    } else if choice == 3 {
-        2
-    } else {
-        println!("Invalid input");
-        3
-    }
-}
+// fn resolve_conflict(conflict: &str) -> i32 {
+//     println!("File {} already exists", conflict);
+//     println!("1) Overwrite file");
+//     println!("2) Skip file");
+//     println!("3) Do nothing and abort");
+//
+//     let mut choice = String::new();
+//     io::stdin().read_line(&mut choice).unwrap();
+//
+//     let choice: i32 = choice.trim().parse().unwrap();
+//
+//     return if choice == 1 {
+//         fs::remove_file(conflict).unwrap();
+//         0
+//     } else if choice == 2 {
+//         1
+//     } else if choice == 3 {
+//         2
+//     } else {
+//         println!("Invalid input");
+//         3
+//     }
+// }
 
 fn repair(internet: bool) {
     if internet {
