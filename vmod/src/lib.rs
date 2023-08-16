@@ -276,6 +276,7 @@ pub fn get_package(pkg: &str, cache: bool, location: &str, tarName: &str) -> Exi
     status
 }
 
+// install package with given arguments
 pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
     let pkglist = list_packages();
 
