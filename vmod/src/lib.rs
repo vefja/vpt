@@ -316,38 +316,6 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
         get_package(pkg, true, "", &tarName);
     } else {}
 
-    if !upgrade {
-        if (add_pkg_to_db(pkg, files) == 16) {
-            return 16; // return 16 if database is locked
-        }
-    } else {
-        let pkgdb = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
-        pkgdb
-            .execute("
-            CREATE TABLE if not exists packages (name TEXT, version TEXT, description TEXT, files TEXT);
-            ", );
-
-        let ver = get_pkg_version(pkg);
-
-        let desc = get_pkg_desc(pkg);
-
-
-        let cmd = "UPDATE packages".to_owned()
-            + " SET version = '"
-            + &*ver.to_string()
-            + "', description = '"
-            + &desc
-            + "' WHERE name = '"
-            + pkg
-            + "';";
-
-        if !db_lock() {
-            return 16; // return 16 if database is locked
-        }
-
-        pkgdb.execute(cmd).unwrap();
-    }
-
     let tar_file = "/tmp/vpt/".to_owned() + &tarName + ".tar.xz";
 
     fs::create_dir_all(&temp_dir).expect("Couldn't create temp directory.");
@@ -527,6 +495,39 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
         }
     }
 
+    if !upgrade {
+        if (add_pkg_to_db(pkg, files) == 16) {
+            return 16; // return 16 if database is locked
+        }
+    } else {
+        let pkgdb = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
+        pkgdb
+            .execute("
+            CREATE TABLE if not exists packages (name TEXT, version TEXT, description TEXT, files TEXT);
+            ", ).expect("Couldn't create table.");
+
+        let ver = get_pkg_version(pkg);
+
+        let desc = get_pkg_desc(pkg);
+
+
+        let cmd = "UPDATE packages".to_owned()
+            + " SET version = '"
+            + &*ver.to_string()
+            + "', description = '"
+            + &desc
+            + "' WHERE name = '"
+            + pkg
+            + "';";
+
+        if !db_lock() {
+            return 16; // return 16 if database is locked
+        }
+
+        pkgdb.execute(cmd).unwrap();
+    }
+
+
     return 0;
 }
 
@@ -646,4 +647,28 @@ pub fn list_packages() -> String {
 
     // Return the packages string
     return packages;
+}
+
+fn resolve_conflict(conflict: &str) -> i32 {
+    println!("File {} already exists", conflict);
+    println!("1) Overwrite file");
+    println!("2) Skip file");
+    println!("3) Do nothing and abort");
+
+    let mut choice = String::new();
+    io::stdin().read_line(&mut choice).unwrap();
+
+    let choice: i32 = choice.trim().parse().unwrap();
+
+    return if choice == 1 {
+        fs::remove_file(conflict).unwrap();
+        0
+    } else if choice == 2 {
+        1
+    } else if choice == 3 {
+        2
+    } else {
+        println!("Invalid input");
+        3
+    }
 }

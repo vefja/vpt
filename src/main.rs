@@ -26,11 +26,9 @@ fn main() {
     if imut_args.len() >= 2 {
         let command = &imut_args[1].to_lowercase();
 
-        if command == "--repair" {
-            println!("repairing online");
-        }
-        else if command == "--repair-offline" {
-            println!("repairing offline");
+        if command == "--repair" || command == "--repair-offline" {
+            repair(command == "--repair");
+            exit(0);
         }
 
         if command == "install"
@@ -327,5 +325,13 @@ fn resolve_conflict(conflict: &str) -> i32 {
     } else {
         println!("Invalid input");
         3
+    }
+}
+
+fn repair(internet: bool) {
+    if internet {
+        println!("Repairing online");
+    } else {
+        println!("Repairing offline");
     }
 }
