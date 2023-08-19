@@ -1,30 +1,33 @@
-use std::{env, fs, io, mem};
+use std::{env, io};
 use std::io::{stdout, Write};
 use std::process::exit;
-use nix::unistd::getuid;
-use colour::{green_ln, red_ln, white};
-use indicatif::{ProgressBar, ProgressStyle};
-use vmod;
-use immutability;
+use colour::{red_ln, white};
+use indicatif::{ProgressBar};
 
 mod debug; // for cargo test 
 
 fn main() {
-    if (vmod::self_test() != 0)
+    #[cfg(not(debug_assertions))]
+    if vmod::self_test() != 0
     {
         red_ln!("One or several necessary files are missing. Cannot continue.");
         red_ln!("Run 'vpt --repair' to repair the installation. (online)");
         red_ln!("Run 'vpt --repair-offline' to repair the installation. (offline)");
     }
 
+    #[cfg(debug_assertions)] // warn the user that debug builds are unsupported
+    {
+        colour::yellow_ln!("Warning: Debug builds are unsupported and may not work properly.");
+    }
+
     let mut args: Vec<String> = env::args().collect(); // args_mod that can be modified
-    let imut_args: Vec<String> = env::args().collect(); // immutable args_mod for other things
+    let args_copy: Vec<String> = env::args().collect(); // immutable args_mod for other things
 
-    let mut debug_mode: bool = false;
+    let _debug_mode: bool = false;
 
 
-    if imut_args.len() >= 2 {
-        let command = &imut_args[1].to_lowercase();
+    if args_copy.len() >= 2 {
+        let command = &args_copy[1].to_lowercase();
 
         if command == "--repair" || command == "--repair-offline" {
             repair(command == "--repair");
@@ -42,39 +45,31 @@ fn main() {
         {
             #[cfg(not(debug_assertions))]
             if vmod::check_option("snapshots") {
-                vmod::new_snapshot("pre", &imut_args[1]);
+                vmod::new_snapshot("pre", &args_copy[1]);
             }
         
             #[cfg(not(debug_assertions))]
-            if !getuid().to_string().eq("0") {
+            if !nix::unistd::getuid().to_string().eq("0") {
                 red_ln!("You must be root to use this command!");
-                std::process::exit(1);
+                exit(1);
             }
-
-            #[cfg(not(debug_assertions))]
-            if vmod::self_test() == 999 {
-                red_ln!("One or more necessary files are missing. Cannot continue.")
-            }
-
-            #[cfg(debug_assertions)]
-            green_ln!("Running in debug mode. You're free to do whatever")
 
         } else if command.eq("help") || command.eq( "help") {
             help(0);
         } else {
             red_ln!("Invalid operation: {}", command);
-            std::process::exit(1);
+            exit(1);
         }
     } else {
         red_ln!("Error: You must specify an operation");
-        std::process::exit(0);
+        exit(0);
     }
 
-    let command = &imut_args[1].to_lowercase(); // redeclare in main
+    let command = &args_copy[1].to_lowercase(); // redeclare in main
 
     let mut inst_path: String = "".to_owned(); 
 
-    if imut_args.len() >= 3 {
+    if args_copy.len() >= 3 {
         for i in 2..args.len() {
             if args[i].contains("--root=") {
                 inst_path = args[i].replace("--root=", "");
@@ -84,27 +79,27 @@ fn main() {
             if args[i].is_empty() {
                 // Throw error if "" is passed as argument
                 red_ln!("Error: Argument cannot be equal to nothing");
-                std::process::exit(512); // Error 512 for invalid arguments
+                exit(512); // Error 512 for invalid arguments
             }
 
             if args[i].contains(' ') {
                 // Throw error if package name contains space
                 red_ln!("Error: Argument cannot contain space");
-                std::process::exit(512);
+                exit(512);
             }
 
             if args[i].contains('.') || args[i].contains('/') {
                 red_ln!("Error: Package name cannot contain '{}'", args[i]);
-                std::process::exit(512);
+                exit(512);
             }
             if !args[i].replace('-', "").chars().all(|c| c.is_alphanumeric()) {
                 red_ln!("Error: Argument cannot contain {}", args[i]);
-                std::process::exit(512);
+                exit(512);
             }
 
             if vmod::get_pkg_version(args[i].as_str()).is_empty() {
                 red_ln!("Error: Package '{}' not found in repository", args[i]);
-                std::process::exit(1);
+                exit(1);
             }
 
             if !vmod::check_option("remove_protected")
@@ -124,7 +119,7 @@ fn main() {
                     "Cannot remove '{0}': Package is required by system.",
                     args[i]
                 );
-                std::process::exit(128);
+                exit(128);
             }
 
             if command.eq("remove") {
@@ -134,7 +129,7 @@ fn main() {
 
                 let all_packages: Vec<&str> = tmp.collect();
 
-                let mut package_exists = false;
+                let _package_exists = false;
 
                 for j in all_packages {
                     if j.eq(args[i].as_str()) {
@@ -155,7 +150,7 @@ fn main() {
             if input == "y" || input == "yes" || input.is_empty() {
                 prompt = false;
             } else if input == "n" || input == "no" {
-                std::process::exit(0);
+                exit(0);
             } else {
                 red_ln!("Invalid input: {}", input);
             }
@@ -171,10 +166,9 @@ fn main() {
     args.remove(0);
     args.remove(0); // remove unneeded args in order to change args to pkg_args
 
-    let mut pkg_args = args.clone();
-    drop(args); // drop the old args
+    let mut pkg_args = args;
 
-    if imut_args[2].eq("search") {
+    if args_copy[2].eq("search") {
         if vmod::search_package(&pkg_args[0]) {
             println!(
                 "{0}-{1}",
@@ -227,8 +221,8 @@ fn main() {
 
         if input.eq("n\n") || input.eq("no\n") {
             // if answer is "n" or "no"
-            println!("Aborting...");
-            std::process::exit(0);
+            println!("Operation aborted.");
+            exit(0);
         } else if !input.eq("y\n") && !input.eq("yes\n") && !input.eq("\n") {
             // if answer is neither "y" nor "yes" nor nothing
             red_ln!("Input Error: Invalid answer.")
@@ -241,7 +235,7 @@ fn main() {
 
 	let orig_mode = immutability::getmode(); // save orig mode (so it doesn't constantly check)
   
-    if orig_mode {
+    if orig_mode { // enter read-write mode
         immutability::enterrw();
     }
 
@@ -278,14 +272,12 @@ fn main() {
 	if orig_mode {
         immutability::enterro();
     }
-
-    mem::drop(orig_mode);
 }
 
 fn help(exit_code: i32) {
     println!("usage: vpt <action> <package>");
     println!("Use 'man vpt' to check all available commands");
-    std::process::exit(exit_code);
+    exit(exit_code);
 }
 
 fn upgrade_system() -> i32 {
@@ -305,7 +297,7 @@ fn upgrade_system() -> i32 {
         }
     }
 
-    return 0;
+    0
 }
 
 // fn resolve_conflict(conflict: &str) -> i32 {

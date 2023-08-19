@@ -251,9 +251,7 @@ pub fn new_snapshot(snapshot_type: &str, snapshot_reason: &str) {
 }
 
 pub fn test_xbps() -> bool {
-    // check if xbps can be found on the OS
-    // (mostly for usage on VF OS or
-    // non Vefjiaw Linux distributions)
+    // check if xbps can be found in /usr/bin
     return Path::new("/usr/bin/xbps-install").exists();
 }
 
@@ -300,7 +298,6 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
 
     // return i32 for error codes; 0 - good
     if !root.is_empty() && !Path::new(root).exists() {
-        // red_ln!("Error: Cannot install to: {}: No such directory.", root);
         return 404; // return 404 if root directory doesn't exist
     } else if !root.is_empty() {
         // TODO: add ability to install to a different root directory
