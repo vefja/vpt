@@ -3,6 +3,7 @@ use std::io::{stdout, Write};
 use std::process::exit;
 use colour::{red_ln, white};
 use indicatif::{ProgressBar};
+use nix::unistd::getuid;
 
 mod debug; // for cargo test 
 
@@ -244,7 +245,7 @@ fn main() {
     while pkgs_done < pkg_args.len() {
         progress.set_position(pkgs_done as u64);
         if command.eq("install") || command.eq("in") {
-            vmod::install_tar(&pkg_args[pkgs_done], &inst_path, inst_path.is_empty(), false);
+            vmod::install_tar(&pkg_args[pkgs_done], &inst_path, inst_path.is_empty(), false, true);
         } else if command.eq("remove") || command.eq("rm") {
             println!(
                 "Removing package: {0} {1}/{2}",
@@ -261,7 +262,7 @@ fn main() {
                 pkgs_done + 1,
                 pkg_args.len()
             );
-            vmod::install_tar(&pkg_args[pkgs_done], "", false, true);
+            vmod::install_tar(&pkg_args[pkgs_done], "", false, true, true);
             }
 
         pkgs_done += 1;
@@ -293,7 +294,7 @@ fn upgrade_system() -> i32 {
 
     for i in all_pkgs.iter() {
         if !vmod::compare_old_to_new(i) {
-            vmod::install_tar(i, "", false, true);
+            vmod::install_tar(i, "", false, true, true);
         }
     }
 
