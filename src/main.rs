@@ -3,7 +3,6 @@ use std::io::{stdout, Write};
 use std::process::exit;
 use colour::{red_ln, white};
 use indicatif::{ProgressBar};
-use nix::unistd::getuid;
 
 mod debug; // for cargo test 
 

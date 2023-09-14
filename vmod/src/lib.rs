@@ -351,7 +351,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: boo
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/usr-bin/";
 
-            let destination = "/usr/bin/".to_owned() + &*binary.replace(&real_path, "");
+            let destination = root + "/usr/bin/".to_owned() + &*binary.replace(&real_path, "");
 
             files = files + &destination + " ";
 
@@ -366,7 +366,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: boo
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/BINARIES" + "/bin/";
 
-            let destination = "/bin/".to_owned() + &*binary.replace(&real_path, "");
+            let destination = root + "/bin/".to_owned() + &*binary.replace(&real_path, "");
 
             files = files + &destination + " ";
 
@@ -381,7 +381,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: boo
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/MANUALS";
 
-            let destination = "/usr/share/man/man1/".to_owned() + &*manual.replace(&real_path, "");
+            let destination = root + "/usr/share/man/man1/".to_owned() + &*manual.replace(&real_path, "");
 
             files = files + &destination + " ";
 
@@ -396,7 +396,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: boo
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/etc";
 
-            let installed_path = "/etc/".to_owned() + &*cfg.replace(&real_path, "");
+            let installed_path = root + "/etc/".to_owned() + &*cfg.replace(&real_path, "");
 
             files = files + &installed_path + " ";
 
@@ -418,7 +418,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: boo
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/CONFIGS" + "/usr-share";
 
-            let destination = "/usr/share/".to_owned() + &*cfg.replace(&real_path, "");
+            let destination = root + "/usr/share/".to_owned() + &*cfg.replace(&real_path, "");
 
             files = files + &destination + " ";
 
@@ -440,7 +440,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: boo
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/BOOT";
 
-            let destination = "/boot/".to_owned() + &*file.replace(&real_path, "");
+            let destination = root + "/boot/".to_owned() + &*file.replace(&real_path, "");
 
             files = files + &destination + " ";
 
@@ -455,7 +455,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: boo
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib";
 
-            let destination = "/usr/lib/".to_owned() + &*lib.replace(&real_path, "");
+            let destination = root + "/usr/lib/".to_owned() + &*lib.replace(&real_path, "");
 
             files = files + &destination + " ";
 
@@ -470,7 +470,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: boo
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES" + "/lib64";
 
-            let destination = "/usr/lib64/".to_owned() + &*lib64.replace(&real_path, "");
+            let destination = root + "/usr/lib64/".to_owned() + &*lib64.replace(&real_path, "");
 
             files = files + &destination + " ";
 
@@ -485,7 +485,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: boo
 
             let real_path = "/tmp/vpt/".to_owned() + &dir_name + "/LIBRARIES/" + "var";
 
-            let destination = "/var/lib/".to_owned() + &*lib.replace(&real_path, "");
+            let destination = root + "/var/lib/".to_owned() + &*lib.replace(&real_path, "");
 
             files = files + &destination + " ";
 
