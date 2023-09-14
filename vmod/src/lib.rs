@@ -275,7 +275,7 @@ pub fn get_package(pkg: &str, cache: bool, location: &str, tarName: &str) -> Exi
 }
 
 // install package with given arguments
-pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
+pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: bool) -> i32 {
     let pkglist = list_packages();
 
     let tmp = pkglist.split(' ');
@@ -401,7 +401,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
             files = files + &installed_path + " ";
 
             if Path::new(&installed_path).exists() {
-                if resolve_conflict(&installed_path) == 2 {
+                if resolve_conflict(&installed_path, cli) == 2 {
                     red_ln!("Error: File Conflict: Cannot continue");
                     exit(128);
                 } else {
@@ -423,7 +423,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
             files = files + &destination + " ";
 
             if Path::new(&destination).exists() {
-                if resolve_conflict(&destination) == 2 {
+                if resolve_conflict(&destination, cli) == 2 {
                     red_ln!("Error: File Conflict: Cannot continue");
                     exit(128);
                 } else {
@@ -529,20 +529,6 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool) -> i32 {
     return 0;
 }
 
-fn unattended_conflict_solver(conflict: &str, solution: &str) -> i32 { // for use with alternative VPT frontends
-    if solution == "overwrite" {
-        fs::remove_file(conflict).unwrap();
-        return 0; // conflict solved
-    } else if solution == "skip" {
-        return 1; // conflict solved (might cause issues)
-    } else if solution == "abort" {
-        return 2; // conflict not solved and abort
-    } else {
-        return 999; // programmer error
-    }
-}
-
-
 // Generate a random name.
 fn assign_random_name() -> String {
     // The charset we want to use for the name.
@@ -647,7 +633,12 @@ pub fn list_packages() -> String {
     return packages;
 }
 
-fn resolve_conflict(conflict: &str) -> i32 {
+fn resolve_conflict(conflict: &str, cli: bool) -> i32 {
+    if cli {
+        fs::remove_file(conflict).unwrap();
+        return 0;
+    }
+
     println!("File {} already exists", conflict);
     println!("1) Overwrite file");
     println!("2) Skip file");
