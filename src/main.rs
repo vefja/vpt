@@ -3,11 +3,16 @@ use std::io::{stdout, Write};
 use std::process::exit;
 use colour::{red_ln, white};
 use indicatif::{ProgressBar};
+use vmod::{download_pkglist, get_package};
 
 mod debug; // for cargo test 
 
 fn main() {
-    #[cfg(not(debug_assertions))]
+    get_package("neofetch", false, "", "neofetch");
+
+    return;
+
+    #[cfg(not(debug_assertions))] // won't run in debug environment
     if vmod::self_test() != 0
     {
         red_ln!("One or several necessary files are missing. Cannot continue.");
@@ -299,31 +304,6 @@ fn upgrade_system() -> i32 {
 
     0
 }
-
-// fn resolve_conflict(conflict: &str) -> i32 {
-//     println!("File {} already exists", conflict);
-//     println!("1) Overwrite file");
-//     println!("2) Skip file");
-//     println!("3) Do nothing and abort");
-//
-//     let mut choice = String::new();
-//     io::stdin().read_line(&mut choice).unwrap();
-//
-//     let choice: i32 = choice.trim().parse().unwrap();
-//
-//     return if choice == 1 {
-//         fs::remove_file(conflict).unwrap();
-//         0
-//     } else if choice == 2 {
-//         1
-//     } else if choice == 3 {
-//         2
-//     } else {
-//         println!("Invalid input");
-//         3
-//     }
-// }
-
 fn repair(internet: bool) {
     if internet {
         println!("Repairing online");

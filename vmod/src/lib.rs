@@ -1,28 +1,27 @@
-use std::fs::File;
-use std::path::Path;
-use std::io::prelude::*;
 use std::{fs, io, str};
-use version_compare::{Cmp, Version};
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::Path;
+use std::process::{Command, exit, ExitStatus};
+
 use colour::*;
 use rand::Rng;
-use std::process::{exit, Command, ExitStatus};
 use tar::Archive;
+use version_compare::{Cmp, Version};
 use xz2::read::XzDecoder;
 
-fn repair_vpt() {
-
-}
+fn repair_vpt() {}
 
 pub fn self_test() -> i32 { // test that all the files that vpt needs are where they should be    
     if !(
         Path::new("/etc/vpt").exists() ||
-        Path::new("/etc/vpt/vpt.conf").exists() ||
-        Path::new("/var/lib/vpt").exists() ||
-        Path::new("/var/lib/vpt/local").exists() ||
-        Path::new("/var/lib/vpt/local/packages.db").exists() ||
-        Path::new("/var/lib/vpt/packages.db").exists() ||
-        Path::new("/tmp/vpt").exists() 
-) {
+            Path::new("/etc/vpt/vpt.conf").exists() ||
+            Path::new("/var/lib/vpt").exists() ||
+            Path::new("/var/lib/vpt/local").exists() ||
+            Path::new("/var/lib/vpt/local/packages.db").exists() ||
+            Path::new("/var/lib/vpt/packages.db").exists() ||
+            Path::new("/tmp/vpt").exists()
+    ) {
         return 999;
     }
 
@@ -49,127 +48,136 @@ pub fn check_option(option: &str) -> bool {
 }
 
 pub fn compare_old_to_new(package: &str) -> bool {
-    // restore databases from backup using sqlite
-    let mut db1 = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
-    let mut db2 = sqlite::open("/var/lib/vpt/packages.db").unwrap();
+    for i in 0..count_repos() {
+        let path = format!("/var/lib/vpt/packages{}.db", i);
 
-    // create table packages if it doesn't exist
-    db1.execute(
-        "
-        CREATE TABLE if not exists packages (name TEXT, version INTEGER, description TEXT, files TEXT);
-        ",
-    ).unwrap(); // make sure table exists
+        if Path::new(&path).exists() {
+            let mut db = sqlite::open(&path).unwrap();
 
-    // create other table pkglist if it doesn't exist
-    db2.execute(
-        "
-        CREATE TABLE if not exists pkglist (name TEXT, version INTEGER, description TEXT, files TEXT);
-        ",
-    ).unwrap(); // make sure table exists
+            db.execute(
+                "CREATE TABLE if not exists pkglist (name TEXT, version TEXT, description TEXT, files TEXT);"
+            ).unwrap();
 
-    let mut oldver = String::new();
-    let mut newver = String::new();
+            let mut oldver = String::new();
+            let mut newver = String::new();
 
+            db.iterate("SELECT name, version FROM pkglist", |pairs| {
+                let mut chkver = false;
 
-    db1.iterate("SELECT name, version FROM packages", |pairs| {
-        let mut chkver = false;
+                for &(column, value) in pairs.iter() {
+                    if column == "name" && value.unwrap() == package {
+                        chkver = true;
+                    } else if column == "version" && chkver {
+                        oldver = value.unwrap().to_string();
+                        chkver = false;
+                    }
+                }
+                true
+            }).unwrap();
 
-        for &(column, value) in pairs.iter() {
-            if column == "name" && value.unwrap() == package {
-                chkver = true;
-            } else if column == "version" && chkver {
-                oldver = value.unwrap().to_string();
-                chkver = false;
+            let pkgdb = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
+
+            pkgdb.execute(
+                "CREATE TABLE if not exists packages (name TEXT, version TEXT, description TEXT, files TEXT);"
+            ).unwrap();
+
+            pkgdb.iterate("SELECT name, version FROM packages", |pairs| {
+                let mut chkver = false;
+
+                for &(column, value) in pairs.iter() {
+                    if column == "name" && value.unwrap() == package {
+                        chkver = true;
+                    } else if column == "version" && chkver {
+                        newver = value.unwrap().to_string();
+                        chkver = false;
+                    }
+                }
+                true
+            }).unwrap();
+
+            let oldver = Version::from(&oldver).unwrap();
+
+            let newver = Version::from(&newver).unwrap();
+
+            let mut is_newer = false;
+
+            if oldver.compare(newver) == Cmp::Gt {
+                is_newer = true;
             }
+
+            return !is_newer; // return if db2's version is newer than db1's
         }
-        true
-    })
-        .unwrap();
-
-    db2.iterate("SELECT name, version FROM pkglist", |pairs| {
-        let mut chkver = false;
-
-        for &(column, value) in pairs.iter() {
-            if column == "name" && value.unwrap() == package {
-                chkver = true;
-            } else if column == "version" && chkver {
-                newver = value.unwrap().to_string();
-                chkver = false;
-            }
-        }
-        true
-    })
-        .unwrap();
-
-    let oldver = Version::from(&oldver).unwrap();
-
-    let newver = Version::from(&newver).unwrap();
-
-    let mut is_newer = false;
-
-    if oldver.compare(newver) == Cmp::Gt {
-        is_newer = true;
     }
 
-    return !is_newer; // return if db2's version is newer than db1's
+    return false;
 }
 
 pub fn get_pkg_version(package: &str) -> String {
-    let mut db = sqlite::open("/var/lib/vpt/packages.db").unwrap();
+    for i in 0..count_repos() {
+        let path = format!("/var/lib/vpt/packages{}.db", i);
 
-    db.execute(
-        "
-        CREATE TABLE if not exists pkglist (name TEXT, version INTEGER, description TEXT, files TEXT);
-        ",
-    ).unwrap();
+        if Path::new(&path).exists() {
+            let mut db = sqlite::open(&path).unwrap();
 
-    let mut ver = String::new();
+            db.execute(
+                "CREATE TABLE if not exists pkglist (name TEXT, version TEXT, description TEXT, files TEXT);"
+            ).unwrap();
 
-    db.iterate("SELECT name, version FROM pkglist", |pairs| {
-        let mut chkver = false;
+            let mut ver = String::new();
 
-        for &(column, value) in pairs.iter() {
-            if column == "name" && value.unwrap() == package {
-                chkver = true;
-            } else if column == "version" && chkver {
-                ver = value.unwrap().to_string();
-                chkver = false;
-            }
+            db.iterate("SELECT name, version FROM pkglist", |pairs| {
+                let mut chkver = false;
+
+                for &(column, value) in pairs.iter() {
+                    if column == "name" && value.unwrap() == package {
+                        chkver = true;
+                    } else if column == "version" && chkver {
+                        ver = value.unwrap().to_string();
+                        chkver = false;
+                    }
+                }
+                true
+            }).unwrap();
+
+            return ver;
         }
-        true
-    })
-        .unwrap();
+    }
 
-    return ver;
+    return "".to_string();
 }
 
 fn get_pkg_desc(package: &str) -> String {
-    let mut db = sqlite::open("/var/lib/vpt/packages.db").unwrap();
+    for i in 0..count_repos() {
+        let path = format!("/var/lib/vpt/packages{}.db", i);
 
-    db.execute(
-        "
-        CREATE TABLE if not exists pkglist (name TEXT, version INTEGER, description TEXT, files TEXT);
-        ",
-    ).unwrap();
+        if Path::new(&path).exists() {
+            let mut db = sqlite::open(&path).unwrap();
 
-    let mut description = String::new();
+            db.execute(
+                "CREATE TABLE if not exists pkglist (name TEXT, version TEXT, description TEXT, files TEXT);"
+            ).unwrap();
 
-    db.iterate("SELECT name, description FROM pkglist", |pairs| {
-        let mut get_desc = false;
+            let mut desc = String::new();
 
-        for &(column, value) in pairs.iter() {
-            if column == "name" && value.unwrap() == package {
-                get_desc = true;
-            } else if column == "description" && get_desc {
-                description = value.unwrap().to_string();
-                get_desc = false;
-            }
+            db.iterate("SELECT name, description FROM pkglist", |pairs| {
+                let mut chkver = false;
+
+                for &(column, value) in pairs.iter() {
+                    if column == "name" && value.unwrap() == package {
+                        chkver = true;
+                    } else if column == "description" && chkver {
+                        desc = value.unwrap().to_string();
+                        chkver = false;
+                    }
+                }
+                true
+            }).unwrap();
+
+            return desc;
         }
-        true
-    })
-        .unwrap();
+    }
 
-    description
+    return "".to_string();
 }
 
 pub fn add_pkg_to_db(package: &str, files: String) -> i32 {
@@ -209,7 +217,7 @@ pub fn debug_add_pkg_to_pkglist(package: &str) {
 
     let ver = 99999;
 
-    let desc = "This is a test description, and this is not a real package, instead it is a fake package for testing purposes.";
+    let desc = "Lorem ipsum.";
 
     let cmd = "INSERT INTO pkglist VALUES ('".to_owned()
         + package
@@ -260,7 +268,26 @@ pub fn search_package(pkg_name: &str) -> bool {
 }
 
 pub fn get_package(pkg: &str, cache: bool, location: &str, tarName: &str) -> ExitStatus {
-    let link = "https://raw.githubusercontent.com/vefjiaw/repo/main/".to_owned() + pkg + ".tar.xz"; // add link searching
+    let link = {
+        // check which link has the package
+        let mut link = String::new();
+
+        for i in get_repos() {
+            // check if link exists
+            if Command::new("curl")
+                .arg(i.to_string() + "/pkg/" + pkg + ".tar.xz")
+                .status()
+                .expect("Error: Couldn't check if package exists.")
+                .success()
+            {
+                link = i.to_string() + "/pkg/" + pkg + ".tar.xz";
+                break;
+            }
+        }
+
+        println!("Downloading package from {}", link);
+    };
+
     // TODO: Check multiple repos for package
     let status = {
         Command::new("curl")
@@ -494,7 +521,7 @@ pub fn install_tar(pkg: &str, root: &str, offline: bool, upgrade: bool, cli: boo
     }
 
     if !upgrade {
-        if (add_pkg_to_db(pkg, files) == 16) {
+        if add_pkg_to_db(pkg, files) == 16 {
             return 16; // return 16 if database is locked
         }
     } else {
@@ -594,43 +621,96 @@ pub fn remove_tar(pkg: &str) -> i32 {
     return 0;
 }
 
-pub fn download_pkglist() {
-    Command::new("curl")
-        .arg("--output")
-        .arg("/var/lib/vpt/packages.db")
-        .arg("https://raw.githubusercontent.com/Vefjiaw/repo/main/pkglist")
-        .output()
-        .expect("Couldn't download package list.");
+pub fn get_repos() -> Vec<i32> {
+    let repos = fs::read_to_string("/etc/vpt/vpt.conf").unwrap();
+    let repos = repos.split("repos = {").collect::<Vec<&str>>()[1];
+    let repos = repos.split("}").collect::<Vec<&str>>()[0];
+    let mut repos = repos.split('\n').collect::<Vec<&str>>();
+
+    repos.remove(0);
+    repos.remove(repos.len() - 1);
+
+    return repos;
+}
+
+pub fn count_repos() -> i32 {
+    let repos = fs::read_to_string("/etc/vpt/vpt.conf").unwrap();
+    let repos = repos.split("repos = {").collect::<Vec<&str>>()[1];
+    let repos = repos.split("}").collect::<Vec<&str>>()[0];
+    let mut repos = repos.split('\n').collect::<Vec<&str>>();
+
+    repos.remove(0);
+    repos.remove(repos.len() - 1);
+
+    return repos.len() as i32;
+}
+
+pub fn download_pkglist() -> i32 { // print error code
+    // get all repos after that is after "repos =" and in between {} and split them into links within a vector
+    let repos = fs::read_to_string("/etc/vpt/vpt.conf").unwrap();
+    let repos = repos.split("repos = {").collect::<Vec<&str>>()[1];
+    let repos = repos.split("}").collect::<Vec<&str>>()[0];
+    let mut repos = repos.split('\n').collect::<Vec<&str>>();
+
+    repos.remove(0);
+    repos.remove(repos.len() - 1);
+
+    for i in 0..repos.len() {
+        repos[i] = match repos[i].find("https") {
+            Some(index) => &repos[i][index..],
+            None => repos[i],
+        };
+    }
+
+
+    for i in 0..repos.len() {
+        println!("{0}: {1}", i, repos[i]);
+    }
+
+
+    for i in 0..repos.len() {
+        println!("Downloading package list from {}", repos[i]);
+
+        let output_path = format!("/var/lib/vpt/packages{}.db", i);
+
+        let status = Command::new("/usr/bin/curl")
+            .arg(repos[i].to_owned().replace('"', "") + "/pkglist")
+            .arg("-o")
+            .arg(&output_path)
+            .status()
+            .expect("Failed to execute command");
+    }
+
+
+    // TODO: add error checking
+    return 0;
 }
 
 pub fn list_packages() -> String {
-    // Open the database
-    let db = sqlite::open("/var/lib/vpt/local/packages.db").unwrap();
+    for i in 0..count_repos() {
+        let path = format!("/var/lib/vpt/packages{}.db", i);
 
-    // Create the packages table if it doesn't exist
-    db.execute(
-        "CREATE TABLE if not exists packages (name TEXT, version TEXT, description TEXT, files TEXT);"
-    ).unwrap();
+        if Path::new(&path).exists() {
+            let mut db = sqlite::open(&path).unwrap();
 
-    // Create a string to store the list of packages
-    let mut packages = String::new();
+            db.execute(
+                "CREATE TABLE if not exists pkglist (name TEXT, version TEXT, description TEXT, files TEXT);"
+            ).unwrap();
 
-    // Iterate over the rows in the packages table
-    db.iterate("SELECT name FROM packages", |pairs| {
-        // For each column in this row
-        for &(column, value) in pairs.iter() {
-            // If the column is "name"
-            if column == "name" {
-                // Add the value to the packages string
-                packages = packages.to_owned() + " " + &value.unwrap().to_string();
-            }
+            let mut packages = String::new();
+
+            db.iterate("SELECT name FROM pkglist", |pairs| {
+                for &(column, value) in pairs.iter() {
+                    if column == "name" {
+                        packages = packages.to_owned() + " " + &value.unwrap().to_string();
+                    }
+                }
+                true
+            }).unwrap();
+
+            return packages;
         }
-        // Continue iterating
-        true
-    }).unwrap();
-
-    // Return the packages string
-    return packages;
+    }
 }
 
 fn resolve_conflict(conflict: &str, cli: bool) -> i32 {
@@ -659,5 +739,5 @@ fn resolve_conflict(conflict: &str, cli: bool) -> i32 {
     } else {
         println!("Invalid input");
         3
-    }
+    };
 }
